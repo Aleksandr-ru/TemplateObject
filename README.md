@@ -1,6 +1,16 @@
 # TemplateObject
 Another simple template parser
 
+### Features
+
+* Blocks of markup as object
+* Block repeat (setBlock appends new block and returns handle to it)
+* Empty block placeholders
+* Independent variables in blocks and main template
+* Variable data escaping (filtering) in setVariable and template, see markup below
+* Includes
+* Cycling includes protection
+
 ## Markup example 
 *header.html*
 ```
@@ -36,7 +46,7 @@ Another simple template parser
 </table>
 <!-- INCLUDE footer.html -->
 ```
-*foter.html*
+*footer.html*
 ```
 </body>
 </html>
