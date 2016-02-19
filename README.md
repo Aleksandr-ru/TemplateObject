@@ -3,7 +3,7 @@ Another simple template parser
 
 ## Markup example 
 *page.html + header.html + foter.html with another markup*
-
+```
 <!-- INCLUDE header.html -->
 <table>
 <caption>{{TITLE}}</caption>
@@ -23,10 +23,10 @@ Another simple template parser
 <!-- END row -->
 </table>
 <!-- INCLUDE footer.html -->
-
+```
 ## Code example 
 *in case of not usage the 'row' block, content of EMPTY will be shown*
-
+```
 $to = new TemplateObject();
 $to->loadTemplate('page.html');
 $to->setVariable('TITLE', 'this is a title');
@@ -36,6 +36,6 @@ for($i=1; $i<=3; $i++) {
 	$row->setVariable('COL2', "test-$i");
 }
 $to->showOutput();
-
+```
 ## More documentation
 See function comments in the .php file
