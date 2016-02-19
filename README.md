@@ -2,7 +2,19 @@
 Another simple template parser
 
 ## Markup example 
-*page.html + header.html + foter.html with another markup*
+*header.html*
+```
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{TITLE|raw}}</title>
+	<script>
+		alert('{{TITLE|js}}');
+	</script>
+</head>
+<body>
+```
+*page.html*
 ```
 <!-- INCLUDE header.html -->
 <table>
@@ -23,6 +35,11 @@ Another simple template parser
 <!-- END row -->
 </table>
 <!-- INCLUDE footer.html -->
+```
+*foter.html*
+```
+</body>
+</html>
 ```
 ## Code example 
 *in case of not usage the 'row' block, content of EMPTY will be shown*

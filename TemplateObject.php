@@ -3,23 +3,32 @@
  * Another simple template parser
  * @author Rebel
  * @copyright (c) 2016 Aleksandr.ru
- * @version 1.0
+ * @version 1.1
  * @link https://github.com/Aleksandr-ru/TemplateObject
  * 
  * Based on features of HTML_Template_IT by Ulf Wendel, Pierre-Alain Joye
  * @link https://pear.php.net/package/HTML_Template_IT 
+ * 
+ * Version history
+ * 1.0
+ * 1.1 added filter support for variables {{VAR|raw}} {{VAR|html}} {{VAR|js}}
  */
 class TemplateObject
 {
 	/**
-	 * @const ESCAPE_NONE
-	 * @const ESCAPE_HTML
-	 * @const ESCAPE_JS
+	 * @const ESCAPE_*
 	 * callback constatnts to escape variable data
-	 */
-	const ESCAPE_NONE = FALSE;
+	 */	
 	const ESCAPE_HTML = 'htmlspecialchars';
 	const ESCAPE_JS = 'addslashes';
+	
+	/**
+	* @const FILTER_*
+	* variable filters for  {{VAR|html}}
+	*/
+	const FILTER_NONE = 'raw';
+	const FILTER_HTML = 'html';
+	const FILTER_JS = 'js';
 	
 	/**
 	 * @const REGEXP_INCLUDE
@@ -33,11 +42,11 @@ class TemplateObject
 	 * <!-- END block -->
 	 * 
 	 * @const REGEXP_VAR
-	 * {{VAR}}
+	 * {{VAR}} {{VAR|raw}} {{VAR|html}} {{VAR|js}}
 	 */
 	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s(.+)\s*-->@iU';
 	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]+)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
-	const REGEXP_VAR = '@{{([a-z][a-z0-9_]+)}}@i';
+	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]+)(\|(?P<filter>[a-z]+))?}}@i';
 	
 	/**
 	 * @const PLACEHOLDER_BLOCK
@@ -45,7 +54,7 @@ class TemplateObject
 	 * placeholders during parse time
 	 */
 	const PLACEHOLDER_BLOCK = '<!--__templateobjectblock[%s]__-->';
-	const PLACEHOLDER_VAR = '<!--__templateobjectvariable[%s]__-->';
+	const PLACEHOLDER_VAR = '<!--__templateobjectvariable[%s|%s]__-->';
 	
 	/**
 	 * @var $tmpl
@@ -75,6 +84,13 @@ class TemplateObject
 	protected $variables, $vardata;
 	
 	/**
+	* @var 
+	* container for default variable filters in setVariable
+	* @see setVariable()
+	*/
+	protected $varfilter_default;
+	
+	/**
 	 * constructor
 	 * @param string $data in case of template from variable or DB
 	 */
@@ -102,6 +118,7 @@ class TemplateObject
 		$this->includes = array();
 		$this->blocks = $this->blockdata = array();
 		$this->vardata = $this->vardata = array();
+		$this->varfilter_default = array();
 	}
 	
 	/**
@@ -138,27 +155,18 @@ class TemplateObject
 	 * Set the variable in markup
 	 * @param string $var name of the variable
 	 * @param string $val value of the variable
-	 * @param string $escape a callback function
+	 * @param string $filter default filter for variable
 	 * 
 	 * @return bool
 	 */
-	function setVariable($var, $val, $escape = self::ESCAPE_HTML)
-	{			
-		if(!in_array($var, $this->variables)) {
+	function setVariable($var, $val, $filter = self::FILTER_HTML)
+	{					
+		if(!isset($this->variables[$var])) {
 			trigger_error("Unknown variable '$var'", E_USER_WARNING);			
 			return FALSE;
-		}
-		elseif($escape && !is_callable($escape)) {
-			trigger_error("Escape function '$escape' is not callable", E_USER_WARNING);
-			return FALSE;
-		}
-		
-		if($escape) {
-			$this->vardata[$var] = call_user_func($escape, $val);
 		}		
-		else {
-			$this->vardata[$var] = $val;
-		}
+		$this->vardata[$var] = $val;
+		$this->varfilter_default[$var] = $filter;
 		$this->out = '';
 		return TRUE;
 	}
@@ -175,23 +183,23 @@ class TemplateObject
 	 * 							...
 	 * 							)
 	 * @param array $arr
-	 * @param string $escape a callback function
+	 * @param string $filter default filter for variable
 	 * 
 	 * @return bool
 	 */
-	function setVarArray($arr, $escape = self::ESCAPE_HTML)
+	function setVarArray($arr, $filter = self::FILTER_HTML)
 	{
 		foreach ($arr as $key => $value) {
 			if(is_array($value) && $this->array_has_string_keys($value)) { // sigleblock
-				$this->setBlock($key)->setVarArray($value, $escape);				
+				$this->setBlock($key)->setVarArray($value, $filter);				
 			}
 			elseif(is_array($value)) { // multiblock
 				foreach($value as $vv) {
-					$this->setBlock($key)->setVarArray($vv, $escape);
+					$this->setBlock($key)->setVarArray($vv, $filter);
 				}
 			}
 			else {
-				$this->setVariable($key, $value, $escape);	
+				$this->setVariable($key, $value, $filter);	
 			}			
 		}
 	}
@@ -217,18 +225,21 @@ class TemplateObject
 	{
 		if($this->out) return $this->out;
 		
-		$this->out = $this->tmpl;
+		echo $this->out = $this->tmpl;
 		$empty = TRUE;
 		
-		if($this->variables) foreach ($this->variables as $var) {			
-			$search = sprintf(self::PLACEHOLDER_VAR, $var);
-			if(isset($this->vardata[$var])) {
-				$empty = FALSE;
-				$this->out = str_replace($search, $this->vardata[$var], $this->out);
+		if($this->variables) foreach ($this->variables as $var => $vv) {						
+			foreach($vv as $filter) {
+				$search = sprintf(self::PLACEHOLDER_VAR, $var, $filter);
+				if(isset($this->vardata[$var])) {					
+					$empty = FALSE;
+					$replace = $this->applyVarFilter($this->vardata[$var], $filter, $this->varfilter_default[$var]);
+					$this->out = str_replace($search, $replace, $this->out);
+				}
+				else {
+					$this->out = str_replace($search, '', $this->out);
+				}		
 			}
-			else {
-				$this->out = str_replace($search, '', $this->out);
-			}		
 		}
 		
 		if($this->blocks) foreach($this->blocks as $blockname => $block) {			
@@ -237,7 +248,7 @@ class TemplateObject
 			if(isset($this->blockdata[$blockname])) {
 				$blockdata = $this->blockdata[$blockname];				
 				foreach ($this->blockdata[$blockname] as $b) {
-					$replace .= $b->get();
+					$replace .= $b->getOutput();
 				}
 				if($replace) $empty = FALSE;
 			}
@@ -259,7 +270,29 @@ class TemplateObject
 	 */
 	function showOutput()
 	{
-		echo $this->get();	
+		echo $this->getOutput();	
+	}
+	
+	/**
+	* Apply given var filter parameters to a value
+	* @param string $value
+	* @param string $filter
+	* @param string $default
+	* 
+	* @return string
+	*/
+	protected function applyVarFilter($value, $filter, $default)
+	{
+		$filter = $filter ? $filter : $default;
+		switch($filter) {
+			case self::FILTER_NONE:
+				return $value;
+			case self::FILTER_JS:
+				return call_user_func(self::ESCAPE_JS, $value);
+			case self::FILTER_HTML:
+			default:
+				return call_user_func(self::ESCAPE_HTML, $value);
+		}		
 	}
 	
 	/**
@@ -336,9 +369,10 @@ class TemplateObject
 	 * @see parseVariables()
 	 */
 	protected function parseVarCallback($arr)
-	{
-		$this->variables[] = $arr[1];
-		return sprintf(self::PLACEHOLDER_VAR, $arr[1]);
+	{		
+		$filter = isset($arr['filter']) ? strtolower($arr['filter']) : '';
+		if(!@in_array($filter, $this->variables[$arr['name']])) $this->variables[$arr['name']][] = $filter;	
+		return sprintf(self::PLACEHOLDER_VAR, $arr['name'], $filter);
 	}
 }
 ?>
