@@ -4,8 +4,10 @@
  * @author Rebel
  * @copyright (c) 2016 Aleksandr.ru
  * @version 1.0
- * 
  * @link https://github.com/Aleksandr-ru/TemplateObject
+ * 
+ * Based on features of HTML_Template_IT by Ulf Wendel, Pierre-Alain Joye
+ * @link https://pear.php.net/package/HTML_Template_IT 
  */
 class TemplateObject
 {
