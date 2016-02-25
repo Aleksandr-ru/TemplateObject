@@ -225,18 +225,18 @@ class TemplateObject
 	{
 		if($this->out) return $this->out;
 		
-		echo $this->out = $this->tmpl;
+		$this->out = $this->tmpl;
 		$empty = TRUE;
 		
 		if($this->variables) foreach ($this->variables as $var => $vv) {						
 			foreach($vv as $filter) {
-				$search = sprintf(self::PLACEHOLDER_VAR, $var, $filter);
-				if(isset($this->vardata[$var])) {					
+				$search = sprintf(self::PLACEHOLDER_VAR, $var, $filter);				
+				if(isset($this->vardata[$var])) {
 					$empty = FALSE;
 					$replace = $this->applyVarFilter($this->vardata[$var], $filter, $this->varfilter_default[$var]);
 					$this->out = str_replace($search, $replace, $this->out);
 				}
-				else {
+				else {					
 					$this->out = str_replace($search, '', $this->out);
 				}		
 			}
