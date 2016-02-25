@@ -65,9 +65,10 @@ class TemplateObject
 	
 	/**
 	 * @var $includes
-	 * array of included files
+	 * @var $base_dir
+	 * array of included files and base dir for includes
 	 */
-	protected $includes;
+	protected $includes, $base_dir;
 	
 	/**
 	 * @var $blocks
@@ -93,13 +94,15 @@ class TemplateObject
 	/**
 	 * constructor
 	 * @param string $data in case of template from variable or DB
+	 * @param string $base_dir working directory for template
 	 */
-	function __construct($data = '')
+	function __construct($data = '', $base_dir = '')
 	{
 		$this->__destruct();
 		
 		if($data) {
 			$this->tmpl = $data;
+			$this->base_dir = $base_dir;
 		
 			$this->parseIncludes();
 			$this->parseBlocks();
@@ -116,6 +119,7 @@ class TemplateObject
 	{
 		$this->tmpl = $this->out = '';
 		$this->includes = array();
+		$this->base_dir = '';
 		$this->blocks = $this->blockdata = array();
 		$this->vardata = $this->vardata = array();
 		$this->varfilter_default = array();
@@ -131,7 +135,7 @@ class TemplateObject
 	{
 		$data = file_get_contents($file);
 		if(!$data) return FALSE;
-		$this->__construct($data);
+		$this->__construct($data, dirname(realpath($file)));
 		return TRUE;
 	}
 	
@@ -148,7 +152,7 @@ class TemplateObject
 			return FALSE;
 		}
 		$this->out = '';
-		return $this->blockdata[$blockname][] = new self($this->blocks[$blockname]['data']);
+		return $this->blockdata[$blockname][] = new self($this->blocks[$blockname]['data'], $this->base_dir);
 	}
 	
 	/**
@@ -315,7 +319,13 @@ class TemplateObject
 	 */
 	protected function parseIncludeCallback($arr)
 	{		
-		$includefile = realpath(dirname($arr[1])).'/'.basename($arr[1]);
+		if($realpath = realpath(dirname($arr[1]))) {
+			$includefile = $realpath.DIRECTORY_SEPARATOR.basename($arr[1]);			
+		}
+		elseif($this->base_dir) {
+			$includefile = $this->base_dir.DIRECTORY_SEPARATOR.$arr[1];			
+		}	
+		
 		if(in_array($includefile, $this->includes)) {
 			throw new Exception("Recursive inclusion '$includefile'");			
 		}
