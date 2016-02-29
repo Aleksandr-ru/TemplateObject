@@ -249,8 +249,7 @@ class TemplateObject
 		if($this->blocks) foreach($this->blocks as $blockname => $block) {			
 			$search = sprintf(self::PLACEHOLDER_BLOCK, $blockname);
 			$replace = '';
-			if(isset($this->blockdata[$blockname])) {
-				$blockdata = $this->blockdata[$blockname];				
+			if(isset($this->blockdata[$blockname])) {				
 				foreach ($this->blockdata[$blockname] as $b) {
 					$replace .= $b->getOutput();
 				}
