@@ -44,7 +44,7 @@ class TemplateObject
 	 * @const REGEXP_VAR
 	 * {{VAR}} {{VAR|raw}} {{VAR|html}} {{VAR|js}}
 	 */
-	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s(.+)\s*-->@iU';
+	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s(\S+)\s*-->@iU';
 	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]+)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
 	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]+)(\|(?P<filter>[a-z]+))?}}@i';
 	
