@@ -26,7 +26,7 @@ class TemplateObject
 	* @const FILTER_*
 	* variable filters for  {{VAR|html}}
 	*/
-	const FILTER_NONE = 'raw';
+	const FILTER_RAW = 'raw';
 	const FILTER_HTML = 'html';
 	const FILTER_JS = 'js';
 	
@@ -85,13 +85,6 @@ class TemplateObject
 	protected $variables, $vardata;
 	
 	/**
-	* @var 
-	* container for default variable filters in setVariable
-	* @see setVariable()
-	*/
-	protected $varfilter_default;
-	
-	/**
 	 * constructor
 	 * @param string $data in case of template from variable or DB
 	 * @param string $base_dir working directory for template
@@ -122,7 +115,6 @@ class TemplateObject
 		$this->base_dir = '';
 		$this->blocks = $this->blockdata = array();
 		$this->vardata = $this->vardata = array();
-		$this->varfilter_default = array();
 	}
 	
 	/**
@@ -158,19 +150,17 @@ class TemplateObject
 	/**
 	 * Set the variable in markup
 	 * @param string $var name of the variable
-	 * @param string $val value of the variable
-	 * @param string $filter default filter for variable
+	 * @param string $val value of the variable	
 	 * 
 	 * @return bool
 	 */
-	function setVariable($var, $val, $filter = self::FILTER_HTML)
+	function setVariable($var, $val)
 	{					
 		if(!isset($this->variables[$var])) {
 			trigger_error("Unknown variable '$var'", E_USER_WARNING);			
 			return FALSE;
 		}		
-		$this->vardata[$var] = $val;
-		$this->varfilter_default[$var] = $filter;
+		$this->vardata[$var] = $val;		
 		$this->out = '';
 		return TRUE;
 	}
@@ -181,29 +171,28 @@ class TemplateObject
 	 * 							'VAR2' => 'another value', 
 	 * 							'sigleblock' => array('BLOCKVAR1' => 'value1', 'BLOCKVAR2' => 'value2', ...),
 	 * 							'multiblock' => array(
-	 * 												[0] => array('VAR1' => 'val1', 'VAR2' => 'val2'),
-	 * 												[1] => array('VAR1' => 'val3', 'VAR2' => 'val4'),
+	 *												[0] => array('VAR1' => 'val1', 'VAR2' => 'val2'),
+	 *												[1] => array('VAR1' => 'val3', 'VAR2' => 'val4'),
 	 * 											),
 	 * 							...
 	 * 							)
-	 * @param array $arr
-	 * @param string $filter default filter for variable
+	 * @param array $arr	 
 	 * 
 	 * @return bool
 	 */
-	function setVarArray($arr, $filter = self::FILTER_HTML)
+	function setVarArray($arr)
 	{
 		foreach ($arr as $key => $value) {
 			if(is_array($value) && $this->array_has_string_keys($value)) { // sigleblock
-				$this->setBlock($key)->setVarArray($value, $filter);				
+				$this->setBlock($key)->setVarArray($value);				
 			}
 			elseif(is_array($value)) { // multiblock
 				foreach($value as $vv) {
-					$this->setBlock($key)->setVarArray($vv, $filter);
+					$this->setBlock($key)->setVarArray($vv);
 				}
 			}
 			else {
-				$this->setVariable($key, $value, $filter);	
+				$this->setVariable($key, $value);	
 			}			
 		}
 	}
@@ -237,7 +226,7 @@ class TemplateObject
 				$search = sprintf(self::PLACEHOLDER_VAR, $var, $filter);				
 				if(isset($this->vardata[$var])) {
 					$empty = FALSE;
-					$replace = $this->applyVarFilter($this->vardata[$var], $filter, $this->varfilter_default[$var]);
+					$replace = $this->applyVarFilter($this->vardata[$var], $filter);
 					$this->out = str_replace($search, $replace, $this->out);
 				}
 				else {					
@@ -279,16 +268,14 @@ class TemplateObject
 	/**
 	* Apply given var filter parameters to a value
 	* @param string $value
-	* @param string $filter
-	* @param string $default
+	* @param string $filter	
 	* 
 	* @return string
 	*/
-	protected function applyVarFilter($value, $filter, $default)
-	{
-		$filter = $filter ? $filter : $default;
+	protected function applyVarFilter($value, $filter)
+	{		
 		switch($filter) {
-			case self::FILTER_NONE:
+			case self::FILTER_RAW:
 				return $value;
 			case self::FILTER_JS:
 				return call_user_func(self::ESCAPE_JS, $value);
@@ -351,7 +338,7 @@ class TemplateObject
 	 * @see parseBlocks()
 	 */
 	protected function parseBlockCallback($arr)
-	{		
+	{	            
 		$this->blocks[$arr['name']] = array(
 			'data' => $arr['data'],
 			'empty' => @$arr['empty']
