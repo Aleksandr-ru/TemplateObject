@@ -184,11 +184,11 @@ class TemplateObject
 	{
 		foreach ($arr as $key => $value) {
 			if(is_array($value) && $this->array_has_string_keys($value)) { // sigleblock
-				$this->setBlock($key)->setVarArray($value);				
+				if($b = $this->setBlock($key)) $b->setVarArray($value);
 			}
 			elseif(is_array($value)) { // multiblock
 				foreach($value as $vv) {
-					$this->setBlock($key)->setVarArray($vv);
+					if($b = $this->setBlock($key)) $b->setVarArray($vv);					
 				}
 			}
 			else {
