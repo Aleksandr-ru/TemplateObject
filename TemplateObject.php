@@ -20,6 +20,7 @@ class TemplateObject
 	 * callback constatnts to escape variable data
 	 */	
 	const ESCAPE_HTML = 'htmlspecialchars';
+	const ESCAPE_NL2BR = 'nl2br';
 	const ESCAPE_JS = 'addslashes';
 	
 	/**
@@ -28,6 +29,7 @@ class TemplateObject
 	*/
 	const FILTER_RAW = 'raw';
 	const FILTER_HTML = 'html';
+	const FILTER_NL2BR = 'nl2br';
 	const FILTER_JS = 'js';
 	
 	/**
@@ -45,8 +47,8 @@ class TemplateObject
 	 * {{VAR}} {{VAR|raw}} {{VAR|html}} {{VAR|js}}
 	 */
 	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s(\S+)\s*-->@iU';
-	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]+)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
-	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]+)(\|(?P<filter>[a-z]+))?}}@i';
+	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]*)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
+	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(\|(?P<filter>[a-z][a-z0-9]*))?}}@i';
 	
 	/**
 	 * @const PLACEHOLDER_BLOCK
@@ -279,6 +281,8 @@ class TemplateObject
 				return $value;
 			case self::FILTER_JS:
 				return call_user_func(self::ESCAPE_JS, $value);
+			case self::FILTER_NL2BR:
+				return call_user_func(self::ESCAPE_NL2BR, call_user_func(self::ESCAPE_HTML, $value));
 			case self::FILTER_HTML:
 			default:
 				return call_user_func(self::ESCAPE_HTML, $value);
