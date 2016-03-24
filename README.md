@@ -7,7 +7,8 @@ Another simple template parser
 * Block repeat (setBlock appends new block and returns handle to it)
 * Empty block placeholders
 * Independent variables in blocks and main template
-* Variable data escaping (filtering) in setVariable and template, see markup below
+* Variable data escaping (filtering) in template, see markup below
+* Variable filtering manipulation: add, replace, remove custom filters
 * Includes
 * Cycling includes protection
 
@@ -48,6 +49,7 @@ Another simple template parser
 ```
 *footer.html*
 ```
+<p>{{MULTILINE|html|nl2br}}</p>
 </body>
 </html>
 ```
@@ -62,6 +64,8 @@ for($i=1; $i<=3; $i++) {
 	$row->setVariable('COL1', $i);
 	$row->setVariable('COL2', "test-$i");
 }
+$string = "String with \"quotes\" and several lines\n second line\n thitd line";
+$to->setVariable('MULTILINE', $string);
 $to->showOutput();
 ```
 ## More documentation

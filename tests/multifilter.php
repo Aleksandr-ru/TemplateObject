@@ -5,7 +5,7 @@ $to = new TemplateObject();
 $to->loadTemplate('multifilter.html');
 $to->setVariable('TITLE', "Multiple filter test");
 
-$string = "This a string with \"quoutes\" and several lines\nsecond line\nthitd line";
+$string = "This a string with \"quotes\" and several lines\nsecond line\nthitd line";
 $to->setVariable('VAR', $string);
 
 $to->addFilter('wrongfilter', function($a){ return 'wrong! '.$a; });

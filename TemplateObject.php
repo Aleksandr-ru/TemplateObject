@@ -30,7 +30,7 @@ class TemplateObject
 	 * <!-- BEGIN block -->
 	 * <a href="{{VAR}}">repeatable content</a>
 	 * <!-- EMPTY block -->
-	 * <img src="{{SRC}}" alt="In case of empty block" />
+	 * <img src="nothing.png" alt="In case of empty block" />
 	 * <!-- END block -->
 	 * 
 	 * @const REGEXP_VAR
