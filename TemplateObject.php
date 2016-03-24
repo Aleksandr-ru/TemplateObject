@@ -17,22 +17,9 @@
 class TemplateObject
 {
 	/**
-	 * @const ESCAPE_*
-	 * callback constatnts to escape variable data
-	 */	
-	/*const ESCAPE_HTML = 'htmlspecialchars';
-	const ESCAPE_NL2BR = 'nl2br';
-	const ESCAPE_JS = 'addslashes';*/
-	
-	/**
-	* @const FILTER_*
-	* variable filters for  {{VAR|html}}
+	* @const DEFAULT_FILTER
+	* the default filter to apply if no filter provided with variable
 	*/
-	/*const FILTER_RAW = 'raw';
-	const FILTER_HTML = 'html';
-	const FILTER_NL2BR = 'nl2br';
-	const FILTER_JS = 'js';*/
-	
 	const DEFAULT_FILTER = 'html';
 	
 	/**
@@ -48,11 +35,14 @@ class TemplateObject
 	 * 
 	 * @const REGEXP_VAR
 	 * {{VAR}} {{VAR|raw}} {{VAR|html}} {{VAR|js}} {{VAR|html|nl2br}}
+	 * 
+	 * @const REGEXP_FILTER
+	 * check expression for addFilter
 	 */
 	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s(\S+)\s*-->@iU';
-	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]*)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
-	//const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(\|(?P<filter>[a-z][a-z0-9]*))?}}@i';
+	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]*)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';	
 	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(?P<filter>\|[a-z][a-z0-9\|]*)?}}@i';
+	const REGEXP_FILTER = '@^[a-z][a-z0-9]*$@';
 	
 	/**
 	 * @const PLACEHOLDER_BLOCK
@@ -90,8 +80,13 @@ class TemplateObject
 	 */
 	protected $variables, $vardata;
 	
+	/**	
+	* @var $filters
+	* list of available filters
+	* array(filter => callback, ...)
+	*/
 	protected $filters = array(
-		'raw'   => '',
+		'raw'   => '', // do nothing
 		'html'  => 'htmlspecialchars',
 		'nl2br' => 'nl2br',
 		'js'    => 'addslashes',
@@ -308,20 +303,6 @@ class TemplateObject
 			}
 		}
 		return $value;
-		
-		/*
-		switch($filter) {
-			case self::FILTER_RAW:
-				return $value;
-			case self::FILTER_JS:
-				return call_user_func(self::ESCAPE_JS, $value);
-			case self::FILTER_NL2BR:
-				return call_user_func(self::ESCAPE_NL2BR, call_user_func(self::ESCAPE_HTML, $value));
-			case self::FILTER_HTML:
-			default:
-				return call_user_func(self::ESCAPE_HTML, $value);
-		}		
-		*/
 	}
 	
 	/**
@@ -365,7 +346,7 @@ class TemplateObject
 	 */	
 	protected function parseBlocks()
 	{
-		$this->tmpl = preg_replace_callback(self::REGEXP_BLOCK, array($this, 'parseBlockCallback'), $this->tmpl);		
+		$this->tmpl = preg_replace_callback(self::REGEXP_BLOCK, array($this, 'parseBlockCallback'), $this->tmpl);
 	}
 	
 	/**
@@ -392,7 +373,7 @@ class TemplateObject
 	 */
 	protected function parseVariables()
 	{		
-		$this->tmpl = preg_replace_callback(self::REGEXP_VAR, array($this, 'parseVarCallback'), $this->tmpl);			
+		$this->tmpl = preg_replace_callback(self::REGEXP_VAR, array($this, 'parseVarCallback'), $this->tmpl);
 	}
 	
 	/**
@@ -408,6 +389,49 @@ class TemplateObject
 		$filter = isset($arr['filter']) ? strtolower(trim($arr['filter'], '|')) : '';
 		if(!@in_array($filter, $this->variables[$arr['name']])) $this->variables[$arr['name']][] = $filter;	
 		return sprintf(self::PLACEHOLDER_VAR, $arr['name'], $filter);
+	}
+	
+	/**
+	* Add (or replace) a filer for variables
+	* @param string $filter
+	* @param mixed $callback
+	* @param bool $overwrite
+	* 
+	* @return bool
+	*/
+	function addFilter($filter, $callback, $overwrite = FALSE)
+	{
+		if(!preg_match(self::REGEXP_FILTER, $filter)) {
+			trigger_error("Wrong filter '$filter'", E_USER_WARNING);
+			return FALSE;
+		}
+		elseif(!$overwrite && isset($this->filters[$filter])) {
+			trigger_error("Filter '$filter' already exists, use overwrite to force", E_USER_WARNING);
+			return FALSE;
+		}
+		if(!is_callable($callback)) {
+			trigger_error("Callback is not callable for filter '$filter'", E_USER_WARNING);
+			return FALSE;
+		}
+		$this->out = '';
+		$this->filters[$filter] = $callback;
+		return TRUE;
+	}
+	
+	/**
+	* Remove an existing filter
+	* @param string $filter
+	* 
+	* @return bool
+	*/
+	function removeFilter($filter)
+	{
+		if(!isset($this->filters[$filter])) {
+			trigger_error("Filter '$filter' does not exists", E_USER_WARNING);
+			return FALSE;
+		}
+		unset($this->filters[$filter]);
+		return TRUE;
 	}
 }
 ?>
