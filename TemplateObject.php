@@ -12,6 +12,7 @@
  * Version history
  * 1.0
  * 1.1 added filter support for variables {{VAR|raw}} {{VAR|html}} {{VAR|js}}
+ * 1.2 multiple filter support like {{VAR|html|nl2br}}
  */
 class TemplateObject
 {
@@ -19,18 +20,20 @@ class TemplateObject
 	 * @const ESCAPE_*
 	 * callback constatnts to escape variable data
 	 */	
-	const ESCAPE_HTML = 'htmlspecialchars';
+	/*const ESCAPE_HTML = 'htmlspecialchars';
 	const ESCAPE_NL2BR = 'nl2br';
-	const ESCAPE_JS = 'addslashes';
+	const ESCAPE_JS = 'addslashes';*/
 	
 	/**
 	* @const FILTER_*
 	* variable filters for  {{VAR|html}}
 	*/
-	const FILTER_RAW = 'raw';
+	/*const FILTER_RAW = 'raw';
 	const FILTER_HTML = 'html';
 	const FILTER_NL2BR = 'nl2br';
-	const FILTER_JS = 'js';
+	const FILTER_JS = 'js';*/
+	
+	const DEFAULT_FILTER = 'html';
 	
 	/**
 	 * @const REGEXP_INCLUDE
@@ -44,11 +47,12 @@ class TemplateObject
 	 * <!-- END block -->
 	 * 
 	 * @const REGEXP_VAR
-	 * {{VAR}} {{VAR|raw}} {{VAR|html}} {{VAR|js}}
+	 * {{VAR}} {{VAR|raw}} {{VAR|html}} {{VAR|js}} {{VAR|html|nl2br}}
 	 */
 	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s(\S+)\s*-->@iU';
 	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]*)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
-	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(\|(?P<filter>[a-z][a-z0-9]*))?}}@i';
+	//const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(\|(?P<filter>[a-z][a-z0-9]*))?}}@i';
+	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(?P<filter>\|[a-z][a-z0-9\|]*)?}}@i';
 	
 	/**
 	 * @const PLACEHOLDER_BLOCK
@@ -85,6 +89,13 @@ class TemplateObject
 	 * containers for variable markup and variable's data
 	 */
 	protected $variables, $vardata;
+	
+	protected $filters = array(
+		'raw'   => '',
+		'html'  => 'htmlspecialchars',
+		'nl2br' => 'nl2br',
+		'js'    => 'addslashes',
+	);
 	
 	/**
 	 * constructor
@@ -276,6 +287,29 @@ class TemplateObject
 	*/
 	protected function applyVarFilter($value, $filter)
 	{		
+		$filter = explode('|', $filter ? $filter : self::DEFAULT_FILTER);
+				
+		while($f = array_shift($filter)) {						
+			if(isset($this->filters[$f])) {
+				if(!$this->filters[$f]) {
+					// raw, do nothing
+				}
+				elseif(is_callable($this->filters[$f])) {
+					$value = call_user_func($this->filters[$f], $value);	
+				}
+				else {
+					trigger_error("Filter function for '$f' is not callable!", E_USER_WARNING);
+					return FALSE;
+				}
+			}
+			else {
+				trigger_error("Unknown filter '$f'", E_USER_WARNING);
+				return FALSE;
+			}
+		}
+		return $value;
+		
+		/*
 		switch($filter) {
 			case self::FILTER_RAW:
 				return $value;
@@ -287,6 +321,7 @@ class TemplateObject
 			default:
 				return call_user_func(self::ESCAPE_HTML, $value);
 		}		
+		*/
 	}
 	
 	/**
@@ -369,8 +404,8 @@ class TemplateObject
 	 * @see parseVariables()
 	 */
 	protected function parseVarCallback($arr)
-	{		
-		$filter = isset($arr['filter']) ? strtolower($arr['filter']) : '';
+	{
+		$filter = isset($arr['filter']) ? strtolower(trim($arr['filter'], '|')) : '';
 		if(!@in_array($filter, $this->variables[$arr['name']])) $this->variables[$arr['name']][] = $filter;	
 		return sprintf(self::PLACEHOLDER_VAR, $arr['name'], $filter);
 	}

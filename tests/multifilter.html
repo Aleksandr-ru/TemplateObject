@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{TITLE}}</title>
+	<style>
+		div {
+			border: solid 1px gray;
+			padding: 1em;
+		}
+	</style>
+</head>
+<body>
+	html + nl2br:
+	<div>{{VAR|html|nl2br}}</div>
+	
+	html:
+	<div>{{VAR|html}}</div>
+	
+	wrongfilter:
+	<div>{{VAR|html|wrongfilter}}</div>	
+	
+	raw:
+	<div>{{VAR|raw}}</div>	
+	wrongfilter2:
+	<div>{{VAR|html|wrongfilter|}}</div>	
+</body>
+</html>
