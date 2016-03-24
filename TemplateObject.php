@@ -3,7 +3,7 @@
  * Another simple template parser
  * @author Rebel
  * @copyright (c) 2016 Aleksandr.ru
- * @version 1.1
+ * @version 1.2
  * @link https://github.com/Aleksandr-ru/TemplateObject
  * 
  * Based on features of HTML_Template_IT by Ulf Wendel, Pierre-Alain Joye
