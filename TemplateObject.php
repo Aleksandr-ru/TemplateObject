@@ -13,6 +13,7 @@
  * 1.0
  * 1.1 added filter support for variables {{VAR|raw}} {{VAR|html}} {{VAR|js}}
  * 1.2 multiple filter support like {{VAR|html|nl2br}}
+ * 1.3 ability to get variables and blocks from loaded template
  */
 class TemplateObject
 {
@@ -137,6 +138,28 @@ class TemplateObject
 		if(!$data) return FALSE;
 		$this->__construct($data, dirname(realpath($file)));
 		return TRUE;
+	}
+	
+	/**
+	* Returns all blocks found in the template
+	* Only 1st level of blocks are returned, not recursive
+	* 
+	* @return array
+	*/
+	function getBlocks()
+	{
+		return array_keys($this->blocks);
+	}
+	
+	/**
+	* Returns all variables found in template
+	* Only variables outside of blocks are returned
+	* 
+	* @return array
+	*/
+	function getVariables()
+	{
+		return array_keys($this->variables);
 	}
 	
 	/**
