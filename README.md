@@ -9,8 +9,8 @@ Another simple template parser
 * Independent variables in blocks and main template
 * Variable data escaping (filtering) in template, see markup below
 * Variable filtering manipulation: add, replace, remove custom filters
-* Includes
-* Cycling includes protection
+* Includes and protection against recursive includes
+* Extending templates and protection against recursive extending
 
 ## Markup example 
 *header.html*
