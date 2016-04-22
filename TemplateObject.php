@@ -3,7 +3,7 @@
  * Another simple template parser
  * @author Rebel
  * @copyright (c) 2016 Aleksandr.ru
- * @version 1.3
+ * @version 2.0
  * @link https://github.com/Aleksandr-ru/TemplateObject
  * 
  * Based on features of HTML_Template_IT by Ulf Wendel, Pierre-Alain Joye
@@ -14,6 +14,7 @@
  * 1.1 added filter support for variables {{VAR|raw}} {{VAR|html}} {{VAR|js}}
  * 1.2 multiple filter support like {{VAR|html|nl2br}}
  * 1.3 ability to get variables and blocks from loaded template
+ * 2.0 now one template can extend another template by replacing it's blocks with own content
  */
 class TemplateObject
 {
@@ -343,6 +344,7 @@ class TemplateObject
 	
 	/**
 	 * Parse the EXTEND directive and convert template
+	 * 
 	 * @return void
 	 */
 	protected function parseExtend()
@@ -373,6 +375,7 @@ class TemplateObject
 	
 	/**
 	 * Parse markup and replace blocks with extenders
+	 * 
 	 * @return void
 	 */	
 	protected function extendBlocks()
@@ -384,6 +387,7 @@ class TemplateObject
 	 * Callback for extendBlocks function
 	 * Replaces a block with its extender if present
 	 * @param array $arr data from preg_replace_callback
+	 * 
 	 * @return string
 	 * @see extendBlocks()
 	 */
@@ -399,6 +403,7 @@ class TemplateObject
 
 	/**
 	 * Parse included templates recursievly and puts them to the main template
+	 * 
 	 * @return void
 	 */
 	protected function parseIncludes()
