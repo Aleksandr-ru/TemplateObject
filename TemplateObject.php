@@ -113,10 +113,12 @@ class TemplateObject
 	 */
 	static function loadTemplate($file)
 	{
-		$data = file_get_contents($file);
+		$dir = dirname(realpath($file));		
+		$filename = basename($file); 
+		
+		$data = file_get_contents($dir . DIRECTORY_SEPARATOR . $filename);		
 		if(!$data) return FALSE;
 		else {
-			$dir = dirname(realpath($file));
 			return new self($data, $dir);
 		}
 	}
@@ -131,7 +133,7 @@ class TemplateObject
 		$this->__destruct();
 		
 		$this->tmpl = $data;
-		$this->base_dir = $base_dir;
+		$this->base_dir = $base_dir ? $base_dir : getcwd();
 		
 		$this->parseExtend();
 		$this->parseIncludes();
@@ -351,12 +353,7 @@ class TemplateObject
 	{
 		$matches = array();
 		while(preg_match(self::REGEXP_EXTEND, $this->tmpl, $matches)) {						
-			if($realpath = realpath(dirname($matches[1]))) {
-				$file = $realpath.DIRECTORY_SEPARATOR.basename($matches[1]);			
-			}
-			elseif($this->base_dir) {
-				$file = $this->base_dir.DIRECTORY_SEPARATOR.$matches[1];			
-			}	
+			$file = realpath($this->base_dir . DIRECTORY_SEPARATOR . $matches[1]);			
 			if(in_array($file, $this->extended)) {
 				throw new Exception("Recursive extending of '$file'");			
 			}
@@ -368,7 +365,7 @@ class TemplateObject
 				$this->extend_blocks[$m['name']] = $m['data'];				
 			}
 			$this->tmpl = file_get_contents($file);
-			$this->base_dir = dirname(realpath($file));
+			$this->base_dir = dirname($file);
 			$this->extendBlocks();
 		}		
 	}
@@ -421,16 +418,10 @@ class TemplateObject
 	 * @see parseIncludes()
 	 */
 	protected function parseIncludeCallback($arr)
-	{		
-		if($realpath = realpath(dirname($arr[1]))) {
-			$includefile = $realpath.DIRECTORY_SEPARATOR.basename($arr[1]);			
-		}
-		elseif($this->base_dir) {
-			$includefile = $this->base_dir.DIRECTORY_SEPARATOR.$arr[1];			
-		}	
-		
+	{
+		$includefile = realpath($this->base_dir . DIRECTORY_SEPARATOR . $arr[1]);		
 		if(in_array($includefile, $this->includes)) {
-			throw new Exception("Recursive inclusion '$includefile'");			
+			throw new Exception("Recursive inclusion of '$includefile'");			
 		}
 		$this->includes[] = $includefile;
 		return file_get_contents($includefile);
