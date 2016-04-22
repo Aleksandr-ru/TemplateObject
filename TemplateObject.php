@@ -24,6 +24,9 @@ class TemplateObject
 	const DEFAULT_FILTER = 'html';
 	
 	/**
+	 * @const REGEXP_EXTEND
+	 * <!-- EXTEND ../relative/path/to/file.html -->
+	 * 
 	 * @const REGEXP_INCLUDE
 	 * <!-- INCLUDE ../relative/path/to/file.html -->
 	 * 
@@ -40,6 +43,7 @@ class TemplateObject
 	 * @const REGEXP_FILTER
 	 * check expression for addFilter
 	 */
+	const REGEXP_EXTEND = '@^\s*<!--\s*EXTEND\s(\S+)\s*-->@imU';
 	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s(\S+)\s*-->@iU';
 	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]*)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';	
 	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(?P<filter>\|[a-z][a-z0-9\|]*)?}}@i';
@@ -73,6 +77,13 @@ class TemplateObject
 	 * containers for block markup and block's data
 	 */
 	protected $blocks, $blockdata;
+	
+	/**	
+	 * @var $extended
+	 * @var $extend_blocks
+	 * array of extended files and container for block extenders 
+	 */
+	protected $extended, $extend_blocks;
 	
 	/**
 	 * @var $variables
@@ -120,7 +131,8 @@ class TemplateObject
 		
 		$this->tmpl = $data;
 		$this->base_dir = $base_dir;
-
+		
+		$this->parseExtend();
 		$this->parseIncludes();
 		$this->parseBlocks();
 		$this->parseVariables();
@@ -138,6 +150,7 @@ class TemplateObject
 		$this->base_dir = '';
 		$this->blocks = $this->blockdata = array();
 		$this->vardata = $this->vardata = array();
+		$this->extended = $this->extend_blocks = array();
 	}
 		
 	/**
@@ -328,6 +341,62 @@ class TemplateObject
 		return $value;
 	}
 	
+	/**
+	 * Parse the EXTEND directive and convert template
+	 * @return void
+	 */
+	protected function parseExtend()
+	{
+		$matches = array();
+		while(preg_match(self::REGEXP_EXTEND, $this->tmpl, $matches)) {						
+			if($realpath = realpath(dirname($matches[1]))) {
+				$file = $realpath.DIRECTORY_SEPARATOR.basename($matches[1]);			
+			}
+			elseif($this->base_dir) {
+				$file = $this->base_dir.DIRECTORY_SEPARATOR.$matches[1];			
+			}	
+			if(in_array($file, $this->extended)) {
+				throw new Exception("Recursive extending of '$file'");			
+			}
+			$this->extended[] = $file;
+			
+			$matches = array();
+			preg_match_all(self::REGEXP_BLOCK, $this->tmpl, $matches, PREG_SET_ORDER);
+			while($m = array_shift($matches)) {
+				$this->extend_blocks[$m['name']] = $m['data'];				
+			}
+			$this->tmpl = file_get_contents($file);
+			$this->base_dir = dirname(realpath($file));
+			$this->extendBlocks();
+		}		
+	}
+	
+	/**
+	 * Parse markup and replace blocks with extenders
+	 * @return void
+	 */	
+	protected function extendBlocks()
+	{
+		$this->tmpl = preg_replace_callback(self::REGEXP_BLOCK, array($this, 'extendBlocksCallback'), $this->tmpl);
+	}
+	
+	/**
+	 * Callback for extendBlocks function
+	 * Replaces a block with its extender if present
+	 * @param array $arr data from preg_replace_callback
+	 * @return string
+	 * @see extendBlocks()
+	 */
+	protected function extendBlocksCallback($arr)
+	{		
+		if(isset($this->extend_blocks[$arr['name']])) {
+			return $this->extend_blocks[$arr['name']];
+		}
+		else {
+			return $arr[0];
+		}
+	}
+
 	/**
 	 * Parse included templates recursievly and puts them to the main template
 	 * @return void
