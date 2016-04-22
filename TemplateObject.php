@@ -296,7 +296,7 @@ class TemplateObject
 			$this->out = str_replace($search, $replace, $this->out);
 		} 
 		
-		if($empty) trigger_error("Template is empty!", E_USER_NOTICE);
+		//if($empty) trigger_error("Template is empty!", E_USER_NOTICE);
 		return $this->out;
 	}
 	
