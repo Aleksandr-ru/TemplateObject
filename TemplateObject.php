@@ -94,6 +94,22 @@ class TemplateObject
 	);
 	
 	/**
+	 * load template from file
+	 * @param string $file path to template to be opened
+	 * 
+	 * @return TemplateObject
+	 */
+	static function loadTemplate($file)
+	{
+		$data = file_get_contents($file);
+		if(!$data) return FALSE;
+		else {
+			$dir = dirname(realpath($file));
+			return new self($data, $dir);
+		}
+	}
+	
+	/**
 	 * constructor
 	 * @param string $data in case of template from variable or DB
 	 * @param string $base_dir working directory for template
@@ -102,14 +118,12 @@ class TemplateObject
 	{
 		$this->__destruct();
 		
-		if($data) {
-			$this->tmpl = $data;
-			$this->base_dir = $base_dir;
-		
-			$this->parseIncludes();
-			$this->parseBlocks();
-			$this->parseVariables();
-		}
+		$this->tmpl = $data;
+		$this->base_dir = $base_dir;
+
+		$this->parseIncludes();
+		$this->parseBlocks();
+		$this->parseVariables();
 	}
 	
 	/**
@@ -125,21 +139,7 @@ class TemplateObject
 		$this->blocks = $this->blockdata = array();
 		$this->vardata = $this->vardata = array();
 	}
-	
-	/**
-	 * load template from file
-	 * @param string $file path to template to be opened
-	 * 
-	 * @return bool
-	 */
-	function loadTemplate($file)
-	{
-		$data = file_get_contents($file);
-		if(!$data) return FALSE;
-		$this->__construct($data, dirname(realpath($file)));
-		return TRUE;
-	}
-	
+		
 	/**
 	* Returns all blocks found in the template
 	* Only 1st level of blocks are returned, not recursive
