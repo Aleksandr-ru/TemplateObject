@@ -56,8 +56,12 @@ Another simple template parser
 ## Code example 
 *in case of not usage the 'row' block, content of EMPTY will be shown*
 ```
-$to = new TemplateObject();
-$to->loadTemplate('page.html');
+// WARNING! Since 2.0 the loadTemplate become static and return TemplateObject
+// this syntax is not valid any more
+// $to = new TemplateObject();
+// $to->loadTemplate('page.html');
+// Please use following
+$to = TemplateObject::loadTemplate('page.html');
 $to->setVariable('TITLE', 'this is a title');
 for($i=1; $i<=3; $i++) {
 	$row = $to->setBlock('row');
@@ -66,6 +70,79 @@ for($i=1; $i<=3; $i++) {
 }
 $string = "String with \"quotes\" and several lines\n second line\n thitd line";
 $to->setVariable('MULTILINE', $string);
+$to->showOutput();
+```
+## Extending templates
+Since 2.0 there is an abilty to extend templates. For example:
+
+*yeild.html*
+```
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{TITLE}}</title>	
+</head>
+<body>
+	<header>
+		<!-- BEGIN head -->
+			This content will be yeilded
+		<!-- END head -->
+	</header>
+	
+	<section>
+		<!-- BEGIN content -->
+			This content will be yeilded
+		<!-- END content -->
+	</section>
+	
+	<footer>
+		<!-- BEGIN foot -->
+			This content will be yeilded
+		<!-- END foot -->
+	</footer>
+</body>
+</html>
+```
+*extend.html*
+```
+<!-- EXTEND yeild.html -->
+
+<!-- BEGIN head -->
+	<p>This is the header</p>
+<!-- END head -->
+
+<!-- BEGIN content -->
+	<table border="1">
+	<caption>This is the content</caption>
+	<tr>
+		<th>Column-1</th>
+		<th>Column-2</th>
+	</tr>
+	<!-- BEGIN row -->
+	<tr>
+		<td>{{COL|html}}</td>
+		<td>{{COL|raw}}</td>
+	</tr>
+	<!-- EMPTY row -->
+	<tr>
+		<td colspan=2>No data</td>
+	</tr>
+	<!-- END row -->
+	</table>
+<!-- END content -->
+
+<!-- BEGIN foot -->
+	<p>This is the footer</p>
+<!-- END foot -->
+```
+The code is the same:
+```
+$to = TemplateObject::loadTemplate('extend.html');
+$to->setVariable('TITLE', "this is a 'title'");
+for($i=1; $i<=3; $i++) {
+    $row = $to->setBlock('row');    
+    $row->setVariable('COL', "test \"$i\"");
+}
 $to->showOutput();
 ```
 ## More documentation
