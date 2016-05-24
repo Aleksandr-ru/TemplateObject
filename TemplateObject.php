@@ -187,7 +187,7 @@ class TemplateObject
 	function setBlock($blockname)
 	{
 		if(!isset($this->blocks[$blockname])) {
-			trigger_error("Unknown block '$blockname'", E_USER_WARNING);
+			trigger_error("Unknown block '$blockname'", E_USER_NOTICE);
 			return FALSE;
 		}
 		$this->out = '';
@@ -204,7 +204,7 @@ class TemplateObject
 	function setVariable($var, $val)
 	{					
 		if(!isset($this->variables[$var])) {
-			trigger_error("Unknown variable '$var'", E_USER_WARNING);			
+			trigger_error("Unknown variable '$var'", E_USER_NOTICE);
 			return FALSE;
 		}		
 		$this->vardata[$var] = $val;		
@@ -337,7 +337,7 @@ class TemplateObject
 				}
 			}
 			else {
-				trigger_error("Unknown filter '$f'", E_USER_WARNING);
+				trigger_error("Unknown filter '$f'", E_USER_NOTICE);
 				return FALSE;
 			}
 		}
@@ -490,15 +490,15 @@ class TemplateObject
 	function addFilter($filter, $callback, $overwrite = FALSE)
 	{
 		if(!preg_match(self::REGEXP_FILTER, $filter)) {
-			trigger_error("Wrong filter '$filter'", E_USER_WARNING);
+			trigger_error("Wrong filter '$filter'", E_USER_NOTICE);
 			return FALSE;
 		}
 		elseif(!$overwrite && isset($this->filters[$filter])) {
-			trigger_error("Filter '$filter' already exists, use overwrite to force", E_USER_WARNING);
+			trigger_error("Filter '$filter' already exists, use overwrite to force", E_USER_NOTICE);
 			return FALSE;
 		}
 		if(!is_callable($callback)) {
-			trigger_error("Callback is not callable for filter '$filter'", E_USER_WARNING);
+			trigger_error("Callback is not callable for filter '$filter'", E_USER_NOTICE);
 			return FALSE;
 		}
 		$this->out = '';
@@ -515,7 +515,7 @@ class TemplateObject
 	function removeFilter($filter)
 	{
 		if(!isset($this->filters[$filter])) {
-			trigger_error("Filter '$filter' does not exists", E_USER_WARNING);
+			trigger_error("Filter '$filter' does not exists", E_USER_NOTICE);
 			return FALSE;
 		}
 		unset($this->filters[$filter]);
