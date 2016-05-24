@@ -3,7 +3,7 @@
  * Another simple template parser
  * @author Rebel
  * @copyright (c) 2016 Aleksandr.ru
- * @version 2.0
+ * @version 2.1
  * @link https://github.com/Aleksandr-ru/TemplateObject
  * 
  * Based on features of HTML_Template_IT by Ulf Wendel, Pierre-Alain Joye
@@ -15,6 +15,7 @@
  * 1.2 multiple filter support like {{VAR|html|nl2br}}
  * 1.3 ability to get variables and blocks from loaded template
  * 2.0 now one template can extend another template by replacing it's blocks with own content
+ * 2.1 global variables: inherited to all child blocks
  */
 class TemplateObject
 {
@@ -92,6 +93,12 @@ class TemplateObject
 	 * containers for variable markup and variable's data
 	 */
 	protected $variables, $vardata;
+
+	/**
+	 * @var $vardata_global
+	 * container for global variable's data
+	 */
+	protected $vardata_global;
 	
 	/**	
 	* @var $filters
@@ -127,13 +134,15 @@ class TemplateObject
 	 * constructor
 	 * @param string $data in case of template from variable or DB
 	 * @param string $base_dir working directory for template
+	 * @param array $global_variables inherited variables array('VARNAME' => 'value', ...)
 	 */
-	function __construct($data = '', $base_dir = '')
+	function __construct($data = '', $base_dir = '', $global_variables = array())
 	{
 		$this->__destruct();
 		
 		$this->tmpl = $data;
 		$this->base_dir = $base_dir ? $base_dir : getcwd();
+		$this->vardata_global = is_array($global_variables) ? $global_variables : array();
 		
 		$this->parseExtend();
 		$this->parseIncludes();
@@ -152,7 +161,8 @@ class TemplateObject
 		$this->includes = array();
 		$this->base_dir = '';
 		$this->blocks = $this->blockdata = array();
-		$this->vardata = $this->vardata = array();
+		$this->variables = $this->vardata = array();
+		$this->vardata_global = array();
 		$this->extended = $this->extend_blocks = array();
 	}
 		
@@ -191,7 +201,21 @@ class TemplateObject
 			return FALSE;
 		}
 		$this->out = '';
-		return $this->blockdata[$blockname][] = new self($this->blocks[$blockname]['data'], $this->base_dir);
+		return $this->blockdata[$blockname][] = new self($this->blocks[$blockname]['data'], $this->base_dir, $this->vardata_global);
+	}
+
+	/**
+	 * Set the variable in global scope
+	 * @param string $var name of the variable
+	 * @param string $val value of the variable
+	 *
+	 * @return bool - variable exists in the template
+	 */
+	function setGlobalVariable($var, $val)
+	{
+		$this->vardata_global[$var] = $val;
+		$this->out = '';
+		return isset($this->variables[$var]);
 	}
 	
 	/**
@@ -211,7 +235,6 @@ class TemplateObject
 		$this->out = '';
 		return TRUE;
 	}
-	
 	
 	/**
 	 * Set variables from array('VAR1' => 'value', 
@@ -266,14 +289,15 @@ class TemplateObject
 		if($this->out) return $this->out;
 		
 		$this->out = $this->tmpl;
-		$empty = TRUE;
+		//$empty = TRUE;
+		$vardata = array_merge($this->vardata_global, $this->vardata);
 		
 		if($this->variables) foreach ($this->variables as $var => $vv) {						
 			foreach($vv as $filter) {
-				$search = sprintf(self::PLACEHOLDER_VAR, $var, $filter);				
-				if(isset($this->vardata[$var])) {
-					$empty = FALSE;
-					$replace = $this->applyVarFilter($this->vardata[$var], $filter);
+				$search = sprintf(self::PLACEHOLDER_VAR, $var, $filter);								
+				if(isset($vardata[$var])) {
+					//$empty = FALSE;
+					$replace = $this->applyVarFilter($vardata[$var], $filter);
 					$this->out = str_replace($search, $replace, $this->out);
 				}
 				else {					
@@ -289,16 +313,15 @@ class TemplateObject
 				foreach ($this->blockdata[$blockname] as $b) {
 					$replace .= $b->getOutput();
 				}
-				if($replace) $empty = FALSE;
+				//if($replace) $empty = FALSE;
 			}
 			if(!$replace && isset($block['empty'])) {
-				$empty = FALSE;
+				//$empty = FALSE;
 				$replace = $block['empty'];				
 			}
 			$this->out = str_replace($search, $replace, $this->out);
 		} 
 		
-		//if($empty) trigger_error("Template is empty!", E_USER_NOTICE);
 		return $this->out;
 	}
 	

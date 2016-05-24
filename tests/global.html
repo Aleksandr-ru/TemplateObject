@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{TITLE}}</title>
+</head>
+<body>
+	<h1>{{TITLE}}</h1>
+	<hr>
+	<!-- BEGIN head -->
+	<p>This is the header</p>
+	<p>Global var: {{GLOBAL}}</p>
+	<!-- END head -->
+	<hr>
+	<!-- BEGIN content -->
+	<table border="1">
+	<caption>This is the content</caption>
+	<tr>
+		<th>Column-1</th>
+		<th>Global</th>
+	</tr>
+	<!-- BEGIN row -->
+	<tr>
+		<td>{{COL|html}}</td>
+		<td>{{GLOBAL}}</td>
+	</tr>
+	<!-- END row -->
+	</table>
+	<!-- END content -->
+	<hr>
+	<!-- BEGIN foot -->
+	<p>This is the footer</p>
+	<p>Global var: {{GLOBAL}}</p>
+	<!-- END foot -->
+</body>
+</html>
