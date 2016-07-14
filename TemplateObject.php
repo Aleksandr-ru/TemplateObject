@@ -16,6 +16,7 @@
  * 1.3 ability to get variables and blocks from loaded template
  * 2.0 now one template can extend another template by replacing it's blocks with own content
  * 2.1 global variables: inherited to all child blocks
+ * 2.2 block options: <!-- BEGIN myblock rsort --> this blocks will be outputted in reversed order, see BLOCKOPTION_* constants
  */
 class TemplateObject
 {
@@ -45,9 +46,9 @@ class TemplateObject
 	 * @const REGEXP_FILTER
 	 * check expression for addFilter
 	 */
-	const REGEXP_EXTEND = '@^\s*<!--\s*EXTEND\s(\S+)\s*-->@imU';
-	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s(\S+)\s*-->@iU';
-	const REGEXP_BLOCK = '@<!--\s*BEGIN\s(?P<name>[a-z][a-z0-9_]*)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';	
+	const REGEXP_EXTEND = '@^\s*<!--\s*EXTEND\s+(\S+)\s*-->@imU';
+	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s+(\S+)\s*-->@iU';
+	const REGEXP_BLOCK = '@<!--\s*BEGIN\s+(?P<name>[a-z][a-z0-9_]*)(?P<options>[a-z0-9_\s]+)?\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
 	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(?P<filter>\|[a-z][a-z0-9\|]*)?}}@i';
 	const REGEXP_FILTER = '@^[a-z][a-z0-9]*$@';
 	
@@ -58,6 +59,12 @@ class TemplateObject
 	 */
 	const PLACEHOLDER_BLOCK = '<!--__templateobjectblock[%s]__-->';
 	const PLACEHOLDER_VAR = '<!--__templateobjectvariable[%s|%s]__-->';
+
+	/**
+	 * @const BLOCKOPTION_RSORT
+	 * indicates that block with this option should be prepended to others in setBlock
+	 */
+	const BLOCKOPTION_RSORT = 'rsort';
 	
 	/**
 	 * @var $tmpl
@@ -201,7 +208,14 @@ class TemplateObject
 			return FALSE;
 		}
 		$this->out = '';
-		return $this->blockdata[$blockname][] = new self($this->blocks[$blockname]['data'], $this->base_dir, $this->vardata_global);
+		$new = new self($this->blocks[$blockname]['data'], $this->base_dir, $this->vardata_global);
+		if(isset($this->blockdata[$blockname]) && in_array(self::BLOCKOPTION_RSORT, $this->blocks[$blockname]['options'])) {
+			array_unshift($this->blockdata[$blockname], $new);
+			return $this->blockdata[$blockname][0];
+		}
+		else {
+			return $this->blockdata[$blockname][] = $new;
+		}
 	}
 
 	/**
@@ -472,7 +486,8 @@ class TemplateObject
 	{	            
 		$this->blocks[$arr['name']] = array(
 			'data' => $arr['data'],
-			'empty' => @$arr['empty']
+			'empty' => @$arr['empty'],
+			'options' => preg_split("@\s+@", strtolower($arr['options']), -1, PREG_SPLIT_NO_EMPTY)
 		);		
 		return sprintf(self::PLACEHOLDER_BLOCK, $arr['name']);
 	}
