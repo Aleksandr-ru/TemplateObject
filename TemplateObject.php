@@ -48,7 +48,7 @@ class TemplateObject
 	 */
 	const REGEXP_EXTEND = '@^\s*<!--\s*EXTEND\s+(\S+)\s*-->@imU';
 	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s+(\S+)\s*-->@iU';
-	const REGEXP_BLOCK = '@<!--\s*BEGIN\s+(?P<name>[a-z][a-z0-9_]*)(?P<options>[a-z0-9_\s]+)?\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
+	const REGEXP_BLOCK = '@<!--\s*BEGIN\s+(?P<name>[a-z][a-z0-9_]*)(?P<options>(\s+[a-z0-9_]+)*)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
 	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(?P<filter>\|[a-z][a-z0-9\|]*)?}}@i';
 	const REGEXP_FILTER = '@^[a-z][a-z0-9]*$@';
 	
