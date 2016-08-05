@@ -456,8 +456,12 @@ class TemplateObject
 	 */
 	protected function parseIncludeCallback($arr)
 	{
-		$includefile = realpath($this->base_dir . DIRECTORY_SEPARATOR . $arr[1]);		
-		if(in_array($includefile, $this->includes)) {
+		$includefile = realpath($this->base_dir . DIRECTORY_SEPARATOR . $arr[1]);
+        if($includefile === FALSE) {
+            //TODO: warning? notice?
+            return '';
+        }
+		elseif(in_array($includefile, $this->includes)) {
 			throw new Exception("Recursive inclusion of '$includefile'");			
 		}
 		$this->includes[] = $includefile;
