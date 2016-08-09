@@ -208,13 +208,15 @@ class TemplateObject
 			return FALSE;
 		}
 		$this->out = '';
-		$new = new self($this->blocks[$blockname]['data'], $this->base_dir, $this->vardata_global);
+		$block = new self($this->blocks[$blockname]['data'], $this->base_dir, $this->vardata_global);
+		foreach($this->filters as $filter => $callback) $block->addFilter($filter, $callback, TRUE);
+		
 		if(isset($this->blockdata[$blockname]) && in_array(self::BLOCKOPTION_RSORT, $this->blocks[$blockname]['options'])) {
-			array_unshift($this->blockdata[$blockname], $new);
+			array_unshift($this->blockdata[$blockname], $block);
 			return $this->blockdata[$blockname][0];
 		}
 		else {
-			return $this->blockdata[$blockname][] = $new;
+			return $this->blockdata[$blockname][] = $block;
 		}
 	}
 
@@ -539,7 +541,7 @@ class TemplateObject
 			trigger_error("Filter '$filter' already exists, use overwrite to force", E_USER_NOTICE);
 			return FALSE;
 		}
-		if(!is_callable($callback)) {
+		if($callback && !is_callable($callback)) {
 			trigger_error("Callback is not callable for filter '$filter'", E_USER_NOTICE);
 			return FALSE;
 		}
