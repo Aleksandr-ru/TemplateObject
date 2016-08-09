@@ -140,16 +140,14 @@ class TemplateObject
 	/**
 	 * constructor
 	 * @param string $data in case of template from variable or DB
-	 * @param string $base_dir working directory for template
-	 * @param array $global_variables inherited variables array('VARNAME' => 'value', ...)
+	 * @param string $base_dir working directory for template	 
 	 */
-	function __construct($data = '', $base_dir = '', $global_variables = array())
+	function __construct($data = '', $base_dir = '')
 	{
 		$this->__destruct();
 		
 		$this->tmpl = $data;
-		$this->base_dir = $base_dir ? $base_dir : getcwd();
-		$this->vardata_global = is_array($global_variables) ? $global_variables : array();
+		$this->base_dir = $base_dir ? $base_dir : getcwd();		
 		
 		$this->parseExtend();
 		$this->parseIncludes();
@@ -208,8 +206,9 @@ class TemplateObject
 			return FALSE;
 		}
 		$this->out = '';
-		$block = new self($this->blocks[$blockname]['data'], $this->base_dir, $this->vardata_global);
+		$block = new self($this->blocks[$blockname]['data'], $this->base_dir);
 		foreach($this->filters as $filter => $callback) $block->addFilter($filter, $callback, TRUE);
+		foreach($this->vardata_global as $var => $val) $block->setGlobalVariable($var, $val);
 		
 		if(isset($this->blockdata[$blockname]) && in_array(self::BLOCKOPTION_RSORT, $this->blocks[$blockname]['options'])) {
 			array_unshift($this->blockdata[$blockname], $block);
