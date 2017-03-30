@@ -131,7 +131,9 @@ class TemplateObject
 		$filename = basename($file); 
 		
 		$data = file_get_contents($dir . DIRECTORY_SEPARATOR . $filename);		
-		if(!$data) return FALSE;
+		if(!$data) {
+			return FALSE;
+		}
 		else {
 			return new self($data, $dir);
 		}
@@ -271,11 +273,11 @@ class TemplateObject
 	{
 		foreach ($arr as $key => $value) {
 			if(is_array($value) && $this->array_has_string_keys($value)) { // sigleblock
-				if($b = $this->setBlock($key)) $b->setVarArray($value);
+				$b = $this->setBlock($key) and $b->setVarArray($value);
 			}
 			elseif(is_array($value)) { // multiblock
 				foreach($value as $vv) {
-					if($b = $this->setBlock($key)) $b->setVarArray($vv);					
+					$b = $this->setBlock($key) and $b->setVarArray($vv);
 				}
 			}
 			elseif(is_null($value)) { // emptyblock
@@ -447,9 +449,12 @@ class TemplateObject
 	 * @return void
 	 */
 	protected function parseIncludes()
-	{		
+	{
+		$count = 0;
 		$this->tmpl = preg_replace_callback(self::REGEXP_INCLUDE, array($this, 'parseIncludeCallback'), $this->tmpl, -1, $count);
-		if($count) $this->parseIncludes();
+		if($count) {
+			$this->parseIncludes();
+		}
 	}
 	
 	/**
@@ -496,7 +501,7 @@ class TemplateObject
 	{	            
 		$this->blocks[$arr['name']] = array(
 			'data' => $arr['data'],
-			'empty' => @$arr['empty'],
+			'empty' => isset($arr['empty']) ? $arr['empty'] : '',
 			'options' => preg_split("@\s+@", strtolower($arr['options']), -1, PREG_SPLIT_NO_EMPTY)
 		);		
 		return sprintf(self::PLACEHOLDER_BLOCK, $arr['name']);
@@ -523,7 +528,9 @@ class TemplateObject
 	protected function parseVarCallback($arr)
 	{
 		$filter = isset($arr['filter']) ? strtolower(trim($arr['filter'], '|')) : '';
-		if(!@in_array($filter, $this->variables[$arr['name']])) $this->variables[$arr['name']][] = $filter;	
+		if(!isset($this->variables[$arr['name']]) || !in_array($filter, $this->variables[$arr['name']])) {
+			$this->variables[$arr['name']][] = $filter;
+		}
 		return sprintf(self::PLACEHOLDER_VAR, $arr['name'], $filter);
 	}
 	
@@ -570,4 +577,3 @@ class TemplateObject
 		return TRUE;
 	}
 }
-?>

@@ -30,4 +30,3 @@ function html2_cb($a)
 {
 	return '<font color=green>' . htmlentities($a) . '</font>';
 }
-?>

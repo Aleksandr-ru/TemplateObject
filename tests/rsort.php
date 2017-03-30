@@ -11,4 +11,3 @@ for($i=1; $i<=3; $i++) {
 	$b = $to->setBlock('reversed')->setVariable('I', $i);
 }
 $to->showOutput();
-?>

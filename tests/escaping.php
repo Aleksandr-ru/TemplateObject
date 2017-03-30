@@ -1,8 +1,7 @@
 <?php
 header("content-type: text/plain");
 require('../TemplateObject.php');
-$to = new TemplateObject();
-$to->loadTemplate('escaping.html');
+$to = TemplateObject::loadTemplate('escaping.html');
 $to->setVariable('TITLE', "this is a 'title'");
 //exit;
 for($i=1; $i<=3; $i++) {
@@ -11,5 +10,3 @@ for($i=1; $i<=3; $i++) {
 }
 //exit;
 $to->showOutput();
-
-?>
