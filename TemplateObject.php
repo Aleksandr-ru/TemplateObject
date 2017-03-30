@@ -252,15 +252,17 @@ class TemplateObject
 	}
 	
 	/**
-	 * Set variables from array('VAR1' => 'value', 
-	 * 							'VAR2' => 'another value', 
-	 * 							'sigleblock' => array('BLOCKVAR1' => 'value1', 'BLOCKVAR2' => 'value2', ...),
-	 * 							'multiblock' => array(
-	 *												[0] => array('VAR1' => 'val1', 'VAR2' => 'val2'),
-	 *												[1] => array('VAR1' => 'val3', 'VAR2' => 'val4'),
-	 * 											),
-	 * 							...
-	 * 							)
+	 * Set variables from array(
+	 *	'VAR1' => 'value',
+	 * 	'VAR2' => 'another value', 
+	 * 	'singleblock' => array('BLOCKVAR1' => 'value1', 'BLOCKVAR2' => 'value2', ...),
+	 * 	'multiblock' => array(
+	 *		[0] => array('VAR1' => 'val1', 'VAR2' => 'val2'),
+	 *		[1] => array('VAR1' => 'val3', 'VAR2' => 'val4'),
+	 *	),
+	 *	'emptyblock' => NULL,
+	 *
+	 * 	...)
 	 * @param array $arr	 
 	 * 
 	 * @return bool
@@ -275,6 +277,9 @@ class TemplateObject
 				foreach($value as $vv) {
 					if($b = $this->setBlock($key)) $b->setVarArray($vv);					
 				}
+			}
+			elseif(is_null($value)) { // emptyblock
+				$this->setBlock($key);
 			}
 			else {
 				$this->setVariable($key, $value);	

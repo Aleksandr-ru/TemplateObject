@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>TemplateObject &ndash; setVarArray TEST</title>
+</head>
+<body>
+	<h1>{{VAR1}} <small>{{VAR2}}</small></h1>
+	<table>
+	<!-- BEGIN singleblock -->
+	<tr>
+	    <th>{{BLOCKVAR1}}</th>
+	    <th>{{BLOCKVAR2}}</th>
+	</tr>
+	<!-- END singleblock -->
+	<!-- BEGIN multiblock -->
+	<tr>
+	    <td>{{VAR1}}</td>
+	    <td>{{VAR2}}</td>
+	</tr>
+	<!-- EMPTY multiblock -->
+	<tr>
+	    <td colspan=2>No data</td>
+	</tr>
+	<!-- END multiblock -->
+	</table>
+	<!-- BEGIN emptyblock -->
+	<address>This is an empty block</address>
+	<!-- END emptyblock -->
+</body>
+</html>
