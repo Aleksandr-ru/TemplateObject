@@ -161,51 +161,42 @@ $to->showOutput();
 
 ## Function quick reference
 
-*static* **loadTemplate**(string  $file) : TemplateObject
+### *static* loadTemplate(string  $file) : TemplateObject
 
 Load template from file.
 
-
-**__construct**(string  $data = '', string  $base_dir = '')
+### __construct(string  $data = '', string  $base_dir = '')
 
 Constructor.
 
-
-**__destruct**()
+### __destruct()
 
 Free and reset resources.
 
-
-**getBlocks**() : array
+### getBlocks() : array
 
 Returns all blocks found in the template.
 Only 1st level of blocks are returned, not recursive.
 
-
-**getVariables**() : array
+### getVariables() : array
 
 Returns all variables found in template.
 Only variables outside of blocks are returned.
 
-
-**setBlock**(string  $blockname) : TemplateObject
+### setBlock(string  $blockname) : TemplateObject
 
 Set block for usage (add a new block to markup and return handle).
 
-
-**setGlobalVariable**(string  $var, string  $val) : boolean
+### setGlobalVariable(string  $var, string  $val) : boolean
 
 Set a variable in global scope.
 
-
-**setVariable**(string  $var, string  $val) : boolean
+### setVariable(string  $var, string  $val) : boolean
 
 Set the variable in markup.
-
 Triggers E_USER_NOTICE if variable was not found.
 
-
-**setVarArray**(array  $arr)
+### setVarArray(array  $arr)
 
 Set variables from an array like
 
@@ -222,23 +213,20 @@ array(
 ...)
 ```
 
-**getOutput**() : string
+### getOutput() : string
 
 Get parsed template with all data set.
 
-
-**showOutput**()
+### showOutput()
 
 Print parsed template with all data set.
 
-
-**addFilter**(string  $filter, callable  $callback, boolean  $overwrite = FALSE) : boolean
+### addFilter(string  $filter, callable  $callback, boolean  $overwrite = FALSE) : boolean
 
 Add (or replace) a filer for variables.
 Triggers E_USER_NOTICE if filter already exists and no $overwrite. Triggers E_USER_NOTICE when given $callback is not callable.
 
-
-**removeFilter**(string  $filter) : boolean
+### removeFilter(string  $filter) : boolean
 
 Remove an existing filter.
 Triggers E_USER_NOTICE if filter does not exists.
