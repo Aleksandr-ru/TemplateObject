@@ -1,68 +1,80 @@
 <?php
 /**
- * Another simple template parser
+ * Another simple template parser.
+ * Based on features of HTML_Template_IT by Ulf Wendel, Pierre-Alain Joye.
+ *
  * @author Rebel
- * @copyright (c) 2016 Aleksandr.ru
- * @version 2.2
- * @link https://github.com/Aleksandr-ru/TemplateObject
- * 
- * Based on features of HTML_Template_IT by Ulf Wendel, Pierre-Alain Joye
- * @link https://pear.php.net/package/HTML_Template_IT 
- * 
- * Version history
- * 1.0
- * 1.1 added filter support for variables {{VAR|raw}} {{VAR|html}} {{VAR|js}}
- * 1.2 multiple filter support like {{VAR|html|nl2br}}
- * 1.3 ability to get variables and blocks from loaded template
- * 2.0 now one template can extend another template by replacing it's blocks with own content
- * 2.1 global variables: inherited to all child blocks
- * 2.2 block options: <!-- BEGIN myblock rsort --> this blocks will be outputted in reversed order, see BLOCKOPTION_* constants
+ * @copyright (c) 2016 Aleksandr.ru 
+ * @link https://github.com/Aleksandr-ru/TemplateObject Project page
+ * @link https://pear.php.net/package/HTML_Template_IT Original HTML_Template_IT
+ * @link http://aleksandr.ru Author's website
+ *
+ * @version 2.3
  */
 class TemplateObject
 {
 	/**
-	* @const DEFAULT_FILTER
-	* the default filter to apply if no filter provided with variable
-	*/
+	 * The default filter to apply if no filter provided with variable
+	 */
 	const DEFAULT_FILTER = 'html';
-	
+
 	/**
-	 * @const REGEXP_EXTEND
+	 * Regexp to parse markup like
+	 * 
+	 * ```
 	 * <!-- EXTEND ../relative/path/to/file.html -->
-	 * 
-	 * @const REGEXP_INCLUDE
+	 * ```
+	 */
+	const REGEXP_EXTEND = '@^\s*<!--\s*EXTEND\s+(\S+)\s*-->@imU';
+
+	/**
+	 * Regexp to parse markup like
+	 *
+	 * ```
 	 * <!-- INCLUDE ../relative/path/to/file.html -->
+	 * ```
+	 */
+	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s+(\S+)\s*-->@iU';
+
+	/**
+	 * Regexp to parse markup like
 	 * 
-	 * @const REGEXP_BLOCK
+	 * ```
 	 * <!-- BEGIN block -->
 	 * <a href="{{VAR}}">repeatable content</a>
 	 * <!-- EMPTY block -->
 	 * <img src="nothing.png" alt="In case of empty block" />
 	 * <!-- END block -->
-	 * 
-	 * @const REGEXP_VAR
-	 * {{VAR}} {{VAR|raw}} {{VAR|html}} {{VAR|js}} {{VAR|html|nl2br}}
-	 * 
-	 * @const REGEXP_FILTER
-	 * check expression for addFilter
+	 * ```
 	 */
-	const REGEXP_EXTEND = '@^\s*<!--\s*EXTEND\s+(\S+)\s*-->@imU';
-	const REGEXP_INCLUDE = '@<!--\s*INCLUDE\s+(\S+)\s*-->@iU';
 	const REGEXP_BLOCK = '@<!--\s*BEGIN\s+(?P<name>[a-z][a-z0-9_]*)(?P<options>(\s+[a-z0-9_]+)*)\s*-->(?P<data>.*)(<!--\s*EMPTY\s\g{name}\s*-->(?P<empty>.*))?<!--\s*END\s\g{name}\s*-->@ismU';
+
+	/**
+	 * Regexp to parse markup like
+	 *
+	 * `{{VAR}}` `{{VAR|raw}}` `{{VAR|html}}` `{{VAR|js}}` `{{VAR|html|nl2br}}`
+	 */
 	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(?P<filter>\|[a-z][a-z0-9\|]*)?}}@i';
+
+	/**
+	 * Check value expression for addFilter function
+	 * @see TemplateObject::addFilter() addFilter function
+	 */
 	const REGEXP_FILTER = '@^[a-z][a-z0-9]*$@';
 	
 	/**
-	 * @const PLACEHOLDER_BLOCK
-	 * @const PLACEHOLDER_VAR
-	 * placeholders during parse time
+	 * Placeholder during parse time
 	 */
 	const PLACEHOLDER_BLOCK = '<!--__templateobjectblock[%s]__-->';
+
+	/**
+	 * Placeholder during parse time
+	 */
 	const PLACEHOLDER_VAR = '<!--__templateobjectvariable[%s|%s]__-->';
 
 	/**
-	 * @const BLOCKOPTION_RSORT
-	 * indicates that block with this option should be prepended to others in setBlock
+	 * Indicates that block with this option should be prepended to others in setBlock
+	 * @see TemplateObject::setBlock() setBlock function
 	 */
 	const BLOCKOPTION_RSORT = 'rsort';
 	
@@ -120,10 +132,11 @@ class TemplateObject
 	);
 	
 	/**
-	 * load template from file
-	 * @param string $file path to template to be opened
+	 * Load template from file.
 	 * 
-	 * @return TemplateObject
+	 * @param string $file Path to template to be opened
+	 * 
+	 * @return TemplateObject A newly created object for given file
 	 */
 	static function loadTemplate($file)
 	{
@@ -140,9 +153,10 @@ class TemplateObject
 	}
 	
 	/**
-	 * constructor
-	 * @param string $data in case of template from variable or DB
-	 * @param string $base_dir working directory for template	 
+	 * Constructor.
+	 * 
+	 * @param string $data In case of template from variable or DB
+	 * @param string $base_dir Working directory for template
 	 */
 	function __construct($data = '', $base_dir = '')
 	{
@@ -158,9 +172,7 @@ class TemplateObject
 	}
 	
 	/**
-	 * free and reset resources
-	 * 
-	 * @return void
+	 * Free and reset resources.
 	 */
 	function __destruct()		
 	{
@@ -174,10 +186,10 @@ class TemplateObject
 	}
 		
 	/**
-	* Returns all blocks found in the template
-	* Only 1st level of blocks are returned, not recursive
+	* Returns all blocks found in the template.
+	* Only 1st level of blocks are returned, not recursive.
 	* 
-	* @return array
+	* @return array List of found block names
 	*/
 	function getBlocks()
 	{
@@ -185,10 +197,10 @@ class TemplateObject
 	}
 	
 	/**
-	* Returns all variables found in template
-	* Only variables outside of blocks are returned
+	* Returns all variables found in template.
+	* Only variables outside of blocks are returned.
 	* 
-	* @return array
+	* @return array List of found variable names
 	*/
 	function getVariables()
 	{
@@ -196,10 +208,11 @@ class TemplateObject
 	}
 	
 	/**
-	 * Set block for usage (add a new block to markup and return handle)
-	 * @param string $blockname
+	 * Set block for usage (add a new block to markup and return handle).
 	 * 
-	 * @return TemplateObject object
+	 * @param string $blockname Name of block in markup
+	 * 
+	 * @return TemplateObject Block object
 	 */
 	function setBlock($blockname)
 	{
@@ -222,11 +235,12 @@ class TemplateObject
 	}
 
 	/**
-	 * Set the variable in global scope
-	 * @param string $var name of the variable
-	 * @param string $val value of the variable
+	 * Set a variable in global scope.
 	 *
-	 * @return bool - variable exists in the template
+	 * @param string $var Name of the variable
+	 * @param string $val Value of the variable
+	 *
+	 * @return bool Variable exists in the template
 	 */
 	function setGlobalVariable($var, $val)
 	{
@@ -236,11 +250,14 @@ class TemplateObject
 	}
 	
 	/**
-	 * Set the variable in markup
-	 * @param string $var name of the variable
-	 * @param string $val value of the variable	
+	 * Set the variable in markup.
+	 *
+	 * Triggers E_USER_NOTICE if variable was not found.
+	 *
+	 * @param string $var Name of the variable
+	 * @param string $val Value of the variable
 	 * 
-	 * @return bool
+	 * @return bool Whether variable was found
 	 */
 	function setVariable($var, $val)
 	{					
@@ -254,20 +271,22 @@ class TemplateObject
 	}
 	
 	/**
-	 * Set variables from array(
+	 * Set variables from an array like
+	 * 
+	 * <pre>
+	 * array(
 	 *	'VAR1' => 'value',
-	 * 	'VAR2' => 'another value', 
-	 * 	'singleblock' => array('BLOCKVAR1' => 'value1', 'BLOCKVAR2' => 'value2', ...),
-	 * 	'multiblock' => array(
+	 *	'VAR2' => 'another value',
+	 *	'singleblock' => array('BLOCKVAR1' => 'value1', 'BLOCKVAR2' => 'value2', ...),
+	 *	'multiblock' => array(
 	 *		[0] => array('VAR1' => 'val1', 'VAR2' => 'val2'),
 	 *		[1] => array('VAR1' => 'val3', 'VAR2' => 'val4'),
 	 *	),
 	 *	'emptyblock' => NULL,
+	 *	...)
+	 * </pre>
 	 *
-	 * 	...)
-	 * @param array $arr	 
-	 * 
-	 * @return bool
+	 * @param array $arr An array of variables and blocks data
 	 */
 	function setVarArray($arr)
 	{
@@ -290,19 +309,20 @@ class TemplateObject
 	}
 	
 	/**
-	* check whether the array has non-integer keys
-	* http://stackoverflow.com/questions/173400/how-to-check-if-php-array-is-associative-or-sequential
-	* @param array $array
-	* 
-	* @return bool
-	*/
-	static function array_has_string_keys($array)
+	 * Check whether the array has non-integer keys.
+	 * @link http://stackoverflow.com/questions/173400/how-to-check-if-php-array-is-associative-or-sequential
+	 *
+	 * @param array $array
+	 *
+	 * @return bool If the array has at leas one string key
+	 */
+    protected static function array_has_string_keys($array)
 	{
 		return count(array_filter(array_keys($array), 'is_string')) > 0;
 	}
 	
 	/**
-	 * Get parsed template with all data set
+	 * Get parsed template with all data set.
 	 * 
 	 * @return string
 	 */
@@ -348,9 +368,7 @@ class TemplateObject
 	}
 	
 	/**
-	 * Print parsed template with all data set
-	 * 
-	 * @return void
+	 * Print parsed template with all data set.
 	 */
 	function showOutput()
 	{
@@ -358,12 +376,13 @@ class TemplateObject
 	}
 	
 	/**
-	* Apply given var filter parameters to a value
-	* @param string $value
-	* @param string $filter	
-	* 
-	* @return string
-	*/
+	 * Apply given var filter parameters to a value
+	 * 
+	 * @param string $value
+	 * @param string $filter
+	 *
+	 * @return string
+	 */
 	protected function applyVarFilter($value, $filter)
 	{		
 		$filter = explode('|', $filter ? $filter : self::DEFAULT_FILTER);
@@ -391,8 +410,6 @@ class TemplateObject
 	
 	/**
 	 * Parse the EXTEND directive and convert template
-	 * 
-	 * @return void
 	 */
 	protected function parseExtend()
 	{
@@ -417,8 +434,6 @@ class TemplateObject
 	
 	/**
 	 * Parse markup and replace blocks with extenders
-	 * 
-	 * @return void
 	 */	
 	protected function extendBlocks()
 	{
@@ -428,6 +443,7 @@ class TemplateObject
 	/**
 	 * Callback for extendBlocks function
 	 * Replaces a block with its extender if present
+	 * 
 	 * @param array $arr data from preg_replace_callback
 	 * 
 	 * @return string
@@ -445,8 +461,6 @@ class TemplateObject
 
 	/**
 	 * Parse included templates recursievly and puts them to the main template
-	 * 
-	 * @return void
 	 */
 	protected function parseIncludes()
 	{
@@ -460,6 +474,7 @@ class TemplateObject
 	/**
 	 * Callback for parseIncludes function
 	 * Checks the included file for recursion and return its contents
+	 * 
 	 * @param array $arr data from preg_replace_callback
 	 * 
 	 * @return string
@@ -481,8 +496,6 @@ class TemplateObject
 	
 	/**
 	 * Parse block markup and replace blocks with placeholders
-	 * 
-	 * @return void
 	 */	
 	protected function parseBlocks()
 	{
@@ -492,6 +505,7 @@ class TemplateObject
 	/**
 	 * Callback for parseBlocks function
 	 * Adds a block data and replaces it with placeholder
+	 *
 	 * @param array $arr data from preg_replace_callback
 	 * 
 	 * @return string
@@ -509,8 +523,6 @@ class TemplateObject
 	
 	/**
 	 * Parse variable markup and replace it with placeholders
-	 * 
-	 * @return void
 	 */
 	protected function parseVariables()
 	{		
@@ -520,6 +532,7 @@ class TemplateObject
 	/**
 	 * Callback for parseVariables function
 	 * Adds a variable data and replaces it with placeholder
+	 * 
 	 * @param array $arr data from preg_replace_callback
 	 * 
 	 * @return string
@@ -535,13 +548,17 @@ class TemplateObject
 	}
 	
 	/**
-	* Add (or replace) a filer for variables
-	* @param string $filter
-	* @param mixed $callback
-	* @param bool $overwrite
-	* 
-	* @return bool
-	*/
+	 * Add (or replace) a filer for variables.
+	 * 
+	 * Triggers E_USER_NOTICE if filter already exists and no $overwrite.
+	 * Triggers E_USER_NOTICE when given $callback is not callable.
+	 * 
+	 * @param string $filter Name of filter
+	 * @param callable $callback A callback function
+	 * @param bool $overwrite Whether to overwrite an existing filter
+	 *
+	 * @return bool Result of adding filter
+	 */
 	function addFilter($filter, $callback, $overwrite = FALSE)
 	{
 		if(!preg_match(self::REGEXP_FILTER, $filter)) {
@@ -562,11 +579,13 @@ class TemplateObject
 	}
 	
 	/**
-	* Remove an existing filter
-	* @param string $filter
-	* 
-	* @return bool
-	*/
+	 * Remove an existing filter.
+	 * Triggers E_USER_NOTICE if filter does not exists.
+	 * 
+	 * @param string $filter Name of filter
+	 *
+	 * @return bool Result of removing filter
+	 */
 	function removeFilter($filter)
 	{
 		if(!isset($this->filters[$filter])) {
