@@ -265,7 +265,7 @@ Triggers E_USER_NOTICE if filter does not exists.
 See PhpDoc in code.
 
 ## Version history
-
+ * 2.4 Recursive blocks via new markup `<!-- RECURSION blockname -->`
  * 2.3 Preserve empty blocks in setVarArray via `'emptyblock' => NULL`
  * 2.2 Block options: `<!-- BEGIN myblock rsort -->` this blocks will be outputted in reversed order, see BLOCKOPTION_* constants
  * 2.1 Global variables: inherited to all child blocks
