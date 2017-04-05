@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>TemplateObject &ndash; recursion TEST</title>
+</head>
+<body>
+	<p>Refresh page to see different results</p>
+	<hr>
+	
+	<ul>
+		<!-- BEGIN block -->
+		<li>
+			Recursion level {{LEVEL}}
+			<ul>
+				<!-- RECURSION block -->
+			</ul>
+		</li>
+		<!-- END block -->
+	</ul>
+
+	<hr>
+	
+	<!-- BEGIN block2 -->
+		[block-2]
+		<!-- RECURSION block2 -->
+	<!-- END block2 -->
+
+	<hr>
+
+	<!-- BEGIN block3 -->
+		[block-3, level {{LEVEL}}]
+		<!-- RECURSION block3 -->
+	<!-- END block3 -->
+</body>
+</html>

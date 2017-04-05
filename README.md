@@ -5,6 +5,7 @@ Another simple template parser
 
 * Blocks of markup as object
 * Block repeat (setBlock appends new block and returns handle to it)
+* Recursive blocks (see example below)
 * Empty block placeholders
 * Independent variables in blocks and main template
 * Variable data escaping (filtering) in template, see markup below
@@ -158,6 +159,35 @@ for($i=1; $i<=3; $i++) {
 }
 $to->showOutput();
 ```
+
+## Recursive blocks
+Since 2.4 there is an abilty to make your blocks recursive. For example:
+
+*recursive.html*
+
+```
+<body>
+	<!-- BEGIN blockname -->
+	[a recursive block]
+	<!-- RECURSION blockname -->
+	<!-- END blockname -->
+</body>
+```
+
+The code:
+
+```
+$to = TemplateObject::loadTemplate('recursive.html');
+$to->setBlock('blockname')->setBlock('blockname')->setBlock('blockname');
+$to->showOutput();
+```
+
+Output:
+
+```
+[a recursive block] [a recursive block] [a recursive block]
+```
+
 
 ## Function quick reference
 
