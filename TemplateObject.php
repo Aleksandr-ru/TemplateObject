@@ -4,12 +4,12 @@
  * Based on features of HTML_Template_IT by Ulf Wendel, Pierre-Alain Joye.
  *
  * @author Rebel
- * @copyright (c) 2016 Aleksandr.ru 
+ * @copyright (c) 2017 Aleksandr.ru
  * @link https://github.com/Aleksandr-ru/TemplateObject Project page
  * @link https://pear.php.net/package/HTML_Template_IT Original HTML_Template_IT
  * @link http://aleksandr.ru Author's website
  *
- * @version 2.3
+ * @version 2.4
  */
 class TemplateObject
 {
