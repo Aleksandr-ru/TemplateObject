@@ -7,6 +7,19 @@ recursion($to);
 
 $to->setBlock('block2')->setBlock('block2')->setBlock('block2');
 
+$a = array(
+	'block3' => array(
+		'LEVEL' => 1,
+		'block3' => array(
+			'LEVEL' => 2,
+			'block3' => array(
+				'LEVEL' => 3,
+			),
+		),
+	),	
+);
+$to->setVarArray($a);
+
 $to->showOutput();
 
 function recursion(&$tmpl, $level = 0)
