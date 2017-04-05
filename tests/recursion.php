@@ -5,6 +5,8 @@ $to = TemplateObject::loadTemplate('recursion.html');
 define('MAX_LEVEL', 5);
 recursion($to);
 
+$to->setBlock('block2')->setBlock('block2')->setBlock('block2');
+
 $to->showOutput();
 
 function recursion(&$tmpl, $level = 0)
