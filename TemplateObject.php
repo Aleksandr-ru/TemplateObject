@@ -52,6 +52,15 @@ class TemplateObject
 	/**
 	 * Regexp to parse markup like
 	 *
+	 * ```
+	 * <!-- RECURSION blockname -->
+	 * ```
+	 */
+	const REGEXP_RECURSION = '@<!--\s*RECURSION\s+(?P<name>[a-z][a-z0-9_]*)\s*-->@iU';
+
+	/**
+	 * Regexp to parse markup like
+	 *
 	 * `{{VAR}}` `{{VAR|raw}}` `{{VAR|html}}` `{{VAR|js}}` `{{VAR|html|nl2br}}`
 	 */
 	const REGEXP_VAR = '@{{(?P<name>[a-z][a-z0-9_]*)(?P<filter>\|[a-z][a-z0-9\|]*)?}}@i';
@@ -84,7 +93,14 @@ class TemplateObject
 	 * the teplate and output holder
 	 */
 	protected $tmpl, $out;
-	
+
+	/**
+	 * Original template holder for recursion
+	 * @var string
+	 */
+	protected $template;
+
+
 	/**
 	 * @var $includes
 	 * @var $base_dir
@@ -162,12 +178,13 @@ class TemplateObject
 	{
 		$this->__destruct();
 		
-		$this->tmpl = $data;
+		$this->template = $this->tmpl = $data;
 		$this->base_dir = $base_dir ? $base_dir : getcwd();		
 		
 		$this->parseExtend();
 		$this->parseIncludes();
 		$this->parseBlocks();
+		$this->parseRecursion();
 		$this->parseVariables();
 	}
 	
@@ -176,6 +193,7 @@ class TemplateObject
 	 */
 	function __destruct()		
 	{
+		$this->template = '';
 		$this->tmpl = $this->out = '';
 		$this->includes = array();
 		$this->base_dir = '';
@@ -504,7 +522,7 @@ class TemplateObject
 	
 	/**
 	 * Callback for parseBlocks function
-	 * Adds a block data and replaces it with placeholder
+	 * Adds a block data and replaces markup with placeholder
 	 *
 	 * @param array $arr data from preg_replace_callback
 	 * 
@@ -516,8 +534,35 @@ class TemplateObject
 		$this->blocks[$arr['name']] = array(
 			'data' => $arr['data'],
 			'empty' => isset($arr['empty']) ? $arr['empty'] : '',
-			'options' => preg_split("@\s+@", strtolower($arr['options']), -1, PREG_SPLIT_NO_EMPTY)
+			'options' => preg_split("@\s+@", strtolower($arr['options']), -1, PREG_SPLIT_NO_EMPTY),
 		);		
+		return sprintf(self::PLACEHOLDER_BLOCK, $arr['name']);
+	}
+
+	/**
+	 * Parse recursion markup and replace it with block placeholdes
+	 */
+	protected function parseRecursion()
+	{
+		$this->tmpl = preg_replace_callback(self::REGEXP_RECURSION, array($this, 'parseRecursionCallback'), $this->tmpl);
+	}
+
+	/**
+	 * Callback for parseRecursion function
+	 * Adds a recursive block and replaces markup with placeholder
+	 *
+	 * @param array $arr data from preg_replace_callback
+	 *
+	 * @return string
+	 * @see parseRecursion()
+	 */
+	protected function parseRecursionCallback($arr)
+	{
+		$this->blocks[$arr['name']] = array(
+			'data' => $this->template,
+			'empty' => '',
+			'options' => array(),
+		);
 		return sprintf(self::PLACEHOLDER_BLOCK, $arr['name']);
 	}
 	
