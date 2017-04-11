@@ -204,27 +204,51 @@ class TemplateObject
 	}
 		
 	/**
-	* Returns all blocks found in the template.
-	* Only 1st level of blocks are returned, not recursive.
-	* 
-	* @return array List of found block names
-	*/
+	 * Returns all blocks found in the template.
+	 * Only 1st level of blocks are returned, not recursive.
+	 *
+	 * @return array List of found block names
+	 */
 	function getBlocks()
 	{
 		return array_keys($this->blocks);
 	}
+
+	/**
+	 * Checks the existence of a block.
+	 * Only 1st level of blocks are checked, not recursive.
+	 * 
+	 * @param string $blockname name of the block
+	 * @return bool whether block exists in template
+	 */
+	function hasBlock($blockname)
+	{
+		return in_array($blockname, $this->getBlocks());
+	}
 	
 	/**
-	* Returns all variables found in template.
-	* Only variables outside of blocks are returned.
-	* 
-	* @return array List of found variable names
-	*/
+	 * Returns all variables found in template.
+	 * Only variables outside of blocks are returned.
+	 *
+	 * @return array List of found variable names
+	 */
 	function getVariables()
 	{
 		return array_keys($this->variables);
 	}
-	
+
+	/**
+	 * Checks the existence of a variable.
+	 * Only variables outside of blocks are checked.
+	 *
+	 * @param string $varname name of the variable
+	 * @return bool whether variable exists in template
+	 */
+	function hasVariable($varname)
+	{
+		return in_array($varname, $this->getVariables());
+	}
+
 	/**
 	 * Set block for usage (add a new block to markup and return handle).
 	 * 
