@@ -223,7 +223,7 @@ class TemplateObject
 	 */
 	function hasBlock($blockname)
 	{
-		return in_array($blockname, $this->getBlocks());
+		return array_key_exists($blockname, $this->blocks);
 	}
 	
 	/**
@@ -246,7 +246,7 @@ class TemplateObject
 	 */
 	function hasVariable($varname)
 	{
-		return in_array($varname, $this->getVariables());
+		return array_key_exists($varname, $this->variables);
 	}
 
 	/**
