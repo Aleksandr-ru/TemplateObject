@@ -509,6 +509,7 @@ class TemplateObject
 		$count = 0;
 		$this->tmpl = preg_replace_callback(self::REGEXP_INCLUDE, array($this, 'parseIncludeCallback'), $this->tmpl, -1, $count);
 		if($count) {
+			$this->parseExtend();
 			$this->parseIncludes();
 		}
 	}
