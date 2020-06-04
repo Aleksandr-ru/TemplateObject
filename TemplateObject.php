@@ -9,7 +9,7 @@
  * @link https://pear.php.net/package/HTML_Template_IT Original HTML_Template_IT
  * @link http://aleksandr.ru Author's website
  *
- * @version 2.4
+ * @version 2.5
  */
 class TemplateObject
 {
@@ -86,6 +86,12 @@ class TemplateObject
 	 * @see TemplateObject::setBlock() setBlock function
 	 */
 	const BLOCKOPTION_RSORT = 'rsort';
+
+    /**
+     * Debug mode to suppress user-level errors
+     * @var bool
+     */
+	public $debug = false;
 	
 	/**
 	 * @var $tmpl
@@ -259,11 +265,12 @@ class TemplateObject
 	function setBlock($blockname)
 	{
 		if(!isset($this->blocks[$blockname])) {
-			trigger_error("Unknown block '$blockname'", E_USER_NOTICE);
+			$this->debug and trigger_error("Unknown block '$blockname'", E_USER_NOTICE);
 			return FALSE;
 		}
 		$this->out = '';
 		$block = new self($this->blocks[$blockname]['data'], $this->base_dir);
+		$block->debug = $this->debug;
 		foreach($this->filters as $filter => $callback) $block->addFilter($filter, $callback, TRUE);
 		foreach($this->vardata_global as $var => $val) $block->setGlobalVariable($var, $val);
 		
@@ -304,7 +311,7 @@ class TemplateObject
 	function setVariable($var, $val)
 	{					
 		if(!isset($this->variables[$var])) {
-			trigger_error("Unknown variable '$var'", E_USER_NOTICE);
+            $this->debug and trigger_error("Unknown variable '$var'", E_USER_NOTICE);
 			return FALSE;
 		}		
 		$this->vardata[$var] = $val;		
@@ -333,11 +340,11 @@ class TemplateObject
 	function setVarArray($arr)
 	{
 		foreach ($arr as $key => $value) {
-			if(is_array($value) && $this->array_has_string_keys($value)) { // sigleblock
+			if(is_array($value) && self::array_has_string_keys($value)) { // singleblock
 				$b = $this->setBlock($key) and $b->setVarArray($value);
 			}
 			elseif(is_array($value)) { // multiblock
-				foreach($value as $vv) {
+				foreach($value as $vv) if(self::array_has_string_keys($vv)) {
 					$b = $this->setBlock($key) and $b->setVarArray($vv);
 				}
 			}
@@ -438,12 +445,12 @@ class TemplateObject
 					$value = call_user_func($this->filters[$f], $value);	
 				}
 				else {
-					trigger_error("Filter function for '$f' is not callable!", E_USER_WARNING);
+                    $this->debug and trigger_error("Filter function for '$f' is not callable!", E_USER_WARNING);
 					return FALSE;
 				}
 			}
 			else {
-				trigger_error("Unknown filter '$f'", E_USER_NOTICE);
+                $this->debug and trigger_error("Unknown filter '$f'", E_USER_NOTICE);
 				return FALSE;
 			}
 		}
@@ -521,13 +528,14 @@ class TemplateObject
 	 * @param array $arr data from preg_replace_callback
 	 * 
 	 * @return string
+     * @throws Exception
 	 * @see parseIncludes()
 	 */
 	protected function parseIncludeCallback($arr)
 	{
 		$includefile = realpath($this->base_dir . DIRECTORY_SEPARATOR . $arr[1]);
         if($includefile === FALSE) {
-            //TODO: warning? notice?
+            $this->debug and trigger_error("Failed to locate include '{$arr[1]}'", E_USER_NOTICE);
             return '';
         }
 		elseif(in_array($includefile, $this->includes)) {
@@ -632,15 +640,15 @@ class TemplateObject
 	function addFilter($filter, $callback, $overwrite = FALSE)
 	{
 		if(!preg_match(self::REGEXP_FILTER, $filter)) {
-			trigger_error("Wrong filter '$filter'", E_USER_NOTICE);
+            $this->debug and trigger_error("Wrong filter '$filter'", E_USER_NOTICE);
 			return FALSE;
 		}
 		elseif(!$overwrite && isset($this->filters[$filter])) {
-			trigger_error("Filter '$filter' already exists, use overwrite to force", E_USER_NOTICE);
+            $this->debug and trigger_error("Filter '$filter' already exists, use overwrite to force", E_USER_NOTICE);
 			return FALSE;
 		}
 		if($callback && !is_callable($callback)) {
-			trigger_error("Callback is not callable for filter '$filter'", E_USER_NOTICE);
+            $this->debug and trigger_error("Callback is not callable for filter '$filter'", E_USER_NOTICE);
 			return FALSE;
 		}
 		$this->out = '';
@@ -659,7 +667,7 @@ class TemplateObject
 	function removeFilter($filter)
 	{
 		if(!isset($this->filters[$filter])) {
-			trigger_error("Filter '$filter' does not exists", E_USER_NOTICE);
+            $this->debug and trigger_error("Filter '$filter' does not exists", E_USER_NOTICE);
 			return FALSE;
 		}
 		unset($this->filters[$filter]);
