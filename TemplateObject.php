@@ -347,12 +347,13 @@ class TemplateObject
 				foreach($value as $vv) {
 				    //TODO: remove set block in next release
                     //see https://github.com/Aleksandr-ru/TemplateObject/commit/4520ffffaa0864bd8503813b1f65a5e9630a2a95
-					$b = $this->setBlock($key);
-					if(self::array_has_string_keys($vv)) {
-                        $b->setVarArray($vv);
-                    }
-					else {
-					    $this->debug and trigger_error("Numeric array given for variables in block '$key'", E_USER_WARNING);
+					if($b = $this->setBlock($key)) {
+                        if(self::array_has_string_keys($vv)) {
+                            $b->setVarArray($vv);
+                        }
+                        else {
+                            $this->debug and trigger_error("Numeric array given for variables in block '$key'", E_USER_WARNING);
+                        }
                     }
 				}
 			}
