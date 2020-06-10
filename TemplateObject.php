@@ -9,7 +9,7 @@
  * @link https://pear.php.net/package/HTML_Template_IT Original HTML_Template_IT
  * @link http://aleksandr.ru Author's website
  *
- * @version 2.5
+ * @version 2.6
  */
 class TemplateObject
 {
@@ -344,18 +344,12 @@ class TemplateObject
 				$b = $this->setBlock($key) and $b->setVarArray($value);
 			}
 			elseif(is_array($value)) { // multiblock
-				foreach($value as $vv) {
-				    //TODO: remove set block in next release
-                    //see https://github.com/Aleksandr-ru/TemplateObject/commit/4520ffffaa0864bd8503813b1f65a5e9630a2a95
-					if($b = $this->setBlock($key)) {
-                        if(is_array($vv) && self::array_has_string_keys($vv)) {
-                            $b->setVarArray($vv);
-                        }
-                        else {
-                            $this->debug and trigger_error("Incorrect variables array for block '$key'", E_USER_WARNING);
-                        }
-                    }
-				}
+                foreach($value as $vv) if(is_array($vv) && self::array_has_string_keys($vv)) {
+                    $b = $this->setBlock($key) and $b->setVarArray($vv);
+                }
+                else {
+                    $this->debug and trigger_error("Incorrect variables array for block '$key'", E_USER_WARNING);
+                }
 			}
 			elseif(is_null($value)) { // emptyblock
 				$this->setBlock($key);
