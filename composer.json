@@ -1,0 +1,27 @@
+{
+  "name": "aleksandr.ru/template-object",
+  "type": "library",
+  "description": "Another simple template parser",
+  "keywords": ["template", "parser", "recursive"],
+  "homepage": "https://github.com/Aleksandr-ru/TemplateObject",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Aleksandr.ru",
+      "email": "aleksandr@aleksandr.ru",
+      "homepage": "http://aleksandr.ru",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/Aleksandr-ru/TemplateObject/issues"
+  },
+  "require": {
+    "php": ">=5.3.0"
+  },
+  "autoload": {
+    "psr-0": {
+      "TemplateObject": ""
+    }
+  }
+}
