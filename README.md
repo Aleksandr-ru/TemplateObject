@@ -1,5 +1,9 @@
 # TemplateObject
-Another simple template parser
+Another simple template parser. Also available via composer:
+
+```
+composer require aleksandr.ru/template-object
+```
 
 ### Features
 
