@@ -9,15 +9,10 @@
  * @link https://pear.php.net/package/HTML_Template_IT Original HTML_Template_IT
  * @link http://aleksandr.ru Author's website
  *
- * @version 2.6
+ * @version 2.7
  */
 class TemplateObject
 {
-	/**
-	 * The default filter to apply if no filter provided with variable
-	 */
-	const DEFAULT_FILTER = 'html';
-
 	/**
 	 * Regexp to parse markup like
 	 * 
@@ -106,7 +101,6 @@ class TemplateObject
 	 */
 	protected $template;
 
-
 	/**
 	 * @var $includes
 	 * @var $base_dir
@@ -152,6 +146,12 @@ class TemplateObject
 		'nl2br' => 'nl2br',
 		'js'    => 'addslashes',
 	);
+
+    /**
+     * @var string
+     * filter to be applied first if there is no "raw" filter is set
+     */
+    protected $forced_filter = 'html';
 	
 	/**
 	 * Load template from file.
@@ -173,10 +173,10 @@ class TemplateObject
 			return new self($data, $dir);
 		}
 	}
-	
+
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param string $data In case of template from variable or DB
 	 * @param string $base_dir Working directory for template
 	 */
@@ -436,9 +436,12 @@ class TemplateObject
 	 * @return string
 	 */
 	protected function applyVarFilter($value, $filter)
-	{		
-		$filter = explode('|', $filter ? $filter : self::DEFAULT_FILTER);
-				
+	{
+        $filter = explode('|', $filter);
+        if (!in_array($this->forced_filter, $filter) && !in_array('raw', $filter)) {
+            array_unshift($filter, $this->forced_filter);
+        }
+
 		while($f = array_shift($filter)) {						
 			if(isset($this->filters[$f])) {
 				if(!$this->filters[$f]) {
@@ -676,4 +679,31 @@ class TemplateObject
 		unset($this->filters[$filter]);
 		return TRUE;
 	}
+
+    /**
+     * Get current forced filter
+     *
+     * @return string filter
+     */
+    function getForcedFilter()
+    {
+        return $this->forced_filter;
+    }
+
+    /**
+     * Get current forced filter
+     *
+     * @param string $filter
+     *
+     * @return bool Result of changing value
+     */
+    function setForcedFilter($filter)
+    {
+        if(!isset($this->filters[$filter])) {
+            $this->debug and trigger_error("Filter '$filter' does not exists", E_USER_WARNING);
+            return FALSE;
+        }
+        $this->forced_filter = $filter;
+        return TRUE;
+    }
 }
