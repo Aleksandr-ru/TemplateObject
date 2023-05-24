@@ -89,9 +89,8 @@ class TemplateObject
 	public $debug = false;
 	
 	/**
-	 * @var $tmpl
-	 * @var $out
-	 * the teplate and output holder
+	 * @var string $tmpl Template holder,
+	 * @var string $out  Output holder
 	 */
 	protected $tmpl, $out;
 
@@ -102,44 +101,42 @@ class TemplateObject
 	protected $template;
 
 	/**
-	 * @var $includes
-	 * @var $base_dir
-	 * array of included files and base dir for includes
+	 * @var string[] $includes Array of included files,
+	 * @var string   $base_dir Base dir for includes
 	 */
 	protected $includes, $base_dir;
 	
 	/**
-	 * @var $blocks
-	 * @var $blockdata
-	 * containers for block markup and block's data
+	 * @var array $blocks Container for block markup,
+     * @see parseBlockCallback
+     *
+	 * @var array $blockdata Container for block's data
+     * @see setBlock
 	 */
 	protected $blocks, $blockdata;
 	
 	/**	
-	 * @var $extended
-	 * @var $extend_blocks
-	 * array of extended files and container for block extenders 
+	 * @var array $extended List of extended files,
+	 * @var array $extend_blocks Container for block extenders
 	 */
 	protected $extended, $extend_blocks;
 	
 	/**
-	 * @var $variables
-	 * @var $vardata
-	 * containers for variable markup and variable's data
+	 * @var array $variables Container for variable markup
+	 * @var array $vardata   Container for variable's data
 	 */
 	protected $variables, $vardata;
 
 	/**
-	 * @var $vardata_global
-	 * container for global variable's data
+     * Container for global variable's data
+	 * @var array $vardata_global
 	 */
 	protected $vardata_global;
 	
-	/**	
-	* @var $filters
-	* list of available filters
-	* array(filter => callback, ...)
-	*/
+	/**
+	 * List of available filters
+     * @var array $filters array(filter => callback, ...)
+	 */
 	protected $filters = array(
 		'raw'   => '', // do nothing
 		'html'  => 'htmlspecialchars',
@@ -148,18 +145,19 @@ class TemplateObject
 	);
 
     /**
+     * Filter to be applied first if there is no "raw" filter is set
      * @var string
-     * filter to be applied first if there is no "raw" filter is set
      */
     protected $forced_filter = 'html';
-	
-	/**
-	 * Load template from file.
-	 * 
-	 * @param string $file Path to template to be opened
-	 * 
-	 * @return TemplateObject A newly created object for given file
-	 */
+
+    /**
+     * Load template from file.
+     *
+     * @param string $file Path to template to be opened
+     *
+     * @return TemplateObject|FALSE A newly created object for given file or FALSE if empty
+     * @throws Exception
+     */
 	static function loadTemplate($file)
 	{
 		$dir = dirname(realpath($file));		
@@ -174,12 +172,13 @@ class TemplateObject
 		}
 	}
 
-	/**
-	 * Constructor.
-	 *
-	 * @param string $data In case of template from variable or DB
-	 * @param string $base_dir Working directory for template
-	 */
+    /**
+     * Constructor.
+     *
+     * @param string $data In case of template from variable or DB
+     * @param string $base_dir Working directory for template
+     * @throws Exception
+     */
 	function __construct($data = '', $base_dir = '')
 	{
 		$this->__destruct();
@@ -664,7 +663,7 @@ class TemplateObject
 	
 	/**
 	 * Remove an existing filter.
-	 * Triggers E_USER_NOTICE if filter does not exists.
+	 * Triggers E_USER_NOTICE if filter does not exist.
 	 * 
 	 * @param string $filter Name of filter
 	 *
@@ -673,7 +672,7 @@ class TemplateObject
 	function removeFilter($filter)
 	{
 		if(!isset($this->filters[$filter])) {
-            $this->debug and trigger_error("Filter '$filter' does not exists", E_USER_NOTICE);
+            $this->debug and trigger_error("Filter '$filter' does not exist", E_USER_NOTICE);
 			return FALSE;
 		}
 		unset($this->filters[$filter]);
@@ -691,7 +690,7 @@ class TemplateObject
     }
 
     /**
-     * Get current forced filter
+     * Set new forced filter
      *
      * @param string $filter
      *
@@ -700,7 +699,7 @@ class TemplateObject
     function setForcedFilter($filter)
     {
         if(!isset($this->filters[$filter])) {
-            $this->debug and trigger_error("Filter '$filter' does not exists", E_USER_WARNING);
+            $this->debug and trigger_error("Filter '$filter' does not exist", E_USER_WARNING);
             return FALSE;
         }
         $this->forced_filter = $filter;

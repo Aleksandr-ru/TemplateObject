@@ -265,10 +265,27 @@ Triggers E_USER_NOTICE if filter already exists and no $overwrite. Triggers E_US
 Remove an existing filter.
 Triggers E_USER_NOTICE if filter does not exists.
 
+### getForcedFilter() : string
+
+Since 2.7. Get current forced filter.
+
+### setForcedFilter(string  $filter) : boolean
+
+Since 2.7. Set new forced filer. By default, is set to "html".
+Triggers E_USER_WARNING if filter does not exist.
+
+Forced filter is filter to be applied first if there is no "raw" filter and no same filter is set for variable.
+
+This mechanism may cause some backwards compatibility issues:
+before 2.7 `{{VAR}}` means `{{VAR|html}}` and `{{VAR|js}}` means only `{{VAR|js}}` (no html applied),
+since 2.7 `{{VAR}}` means `{{VAR|html}}` and `{{VAR|js}}` means `{{VAR|html|js}}` (html is forcefully prepended).
+To get back old behaviour of `{{VAR|js}}` you need to add "raw" filter like `{{VAR|raw|js}}`.
+
 ## More documentation
 See PhpDoc in code.
 
 ## Version history
+ * 2.7 Forced filter instead of default, applies until raw is set
  * 2.6 Removed side effect of preserving blocks by setting it to a non-assoc array
  * 2.5 Template processing boost and new option `public $debug = false`
  * 2.4 Recursive blocks via new markup `<!-- RECURSION blockname -->`
