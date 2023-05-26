@@ -1,4 +1,5 @@
 <?php
+if(isset($_GET['text'])) header("content-type: text/plain");
 require('../TemplateObject.php');
 $to = TemplateObject::loadTemplate('setvararray.html');
 $array = array(

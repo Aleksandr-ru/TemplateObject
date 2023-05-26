@@ -1,7 +1,7 @@
 <?php
 //error_reporting(E_ALL);
 //ini_set('display_errors', 'on');
-//header("content-type: text/plain");
+if(isset($_GET['text'])) header("content-type: text/plain");
 require('../TemplateObject.php');
 
 $to = TemplateObject::loadTemplate('extend.html');
