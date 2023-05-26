@@ -274,6 +274,7 @@ class TemplateObject
 		$block->debug = $this->debug;
 		foreach($this->filters as $filter => $callback) $block->addFilter($filter, $callback, TRUE);
 		foreach($this->vardata_global as $var => $val) $block->setGlobalVariable($var, $val);
+        $block->setForcedFilter($this->getForcedFilter());
 		
 		if(isset($this->blockdata[$blockname]) && in_array(self::BLOCKOPTION_RSORT, $this->blocks[$blockname]['options'])) {
 			array_unshift($this->blockdata[$blockname], $block);
