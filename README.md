@@ -275,6 +275,7 @@ Since 2.7. Set new forced filer. By default, is set to "html".
 Triggers E_USER_WARNING if filter does not exist.
 
 Forced filter is filter to be applied first if there is no "raw" filter and no same filter is set for variable.
+Forced filter can contain several elements like `html|nl2br`, each will be prepended to variable's filters, if is not set.
 
 This mechanism may cause some backwards compatibility issues:
 before 2.7 `{{VAR}}` means `{{VAR|html}}` and `{{VAR|js}}` means only `{{VAR|js}}` (no html applied),

@@ -145,10 +145,12 @@ class TemplateObject
 	);
 
     /**
-     * Filter to be applied first if there is no "raw" filter is set
-     * @var string
+     * Filters to be applied first if there is no "raw" filter is set
+     * stored in reversed order for performance
+     * @see applyVarFilter
+     * @var string[]
      */
-    protected $forced_filter = 'html';
+    protected $forced_filter = ['html'];
 
     /**
      * Load template from file.
@@ -437,8 +439,12 @@ class TemplateObject
 	protected function applyVarFilter($value, $filter)
 	{
         $filter = explode('|', $filter);
-        if (!in_array($this->forced_filter, $filter) && !in_array('raw', $filter)) {
-            array_unshift($filter, $this->forced_filter);
+        if (!in_array('raw', $filter)) {
+            foreach ($this->forced_filter as $ff) {
+                if (!in_array($ff, $filter)) {
+                    array_unshift($filter, $ff);
+                }
+            }
         }
 
 		while($f = array_shift($filter)) {						
@@ -686,23 +692,30 @@ class TemplateObject
      */
     function getForcedFilter()
     {
-        return $this->forced_filter;
+        $ff = array_reverse($this->forced_filter);
+        return implode('|', $ff);
     }
 
     /**
      * Set new forced filter
      *
-     * @param string $filter
+     * @param string $filter Can accept 'filter_one|filter_two'
      *
      * @return bool Result of changing value
      */
     function setForcedFilter($filter)
     {
-        if(!isset($this->filters[$filter])) {
-            $this->debug and trigger_error("Filter '$filter' does not exist", E_USER_WARNING);
+        $ff = explode('|', $filter);
+        $ff = array_filter(array_unique($ff));
+        if (!count($ff)) {
+            $this->debug and trigger_error("Filter '$filter' is empty", E_USER_WARNING);
             return FALSE;
         }
-        $this->forced_filter = $filter;
+        foreach ($ff as $f) if(!isset($this->filters[$f])) {
+            $this->debug and trigger_error("Filter '$f' does not exist", E_USER_WARNING);
+            return FALSE;
+        }
+        $this->forced_filter = array_reverse($ff);
         return TRUE;
     }
 }
