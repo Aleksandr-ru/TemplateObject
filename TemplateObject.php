@@ -150,7 +150,7 @@ class TemplateObject
      * @see applyVarFilter
      * @var string[]
      */
-    protected $forced_filter = ['html'];
+    protected $forced_filter = array('html');
 
     /**
      * Load template from file.
